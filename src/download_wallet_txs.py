@@ -9,7 +9,7 @@ api_config.read('data/api_keys.ini')
 
 etherscan_api_key = api_config.get('api', 'etherscan_api_key')
 
-requests_cache.install_cache('cache/cache', backend='sqlite', expire_after=600)
+requests_cache.install_cache('cache/cache', backend='sqlite', expire_after=60 * 60 * 3)
 
 
 def get_txs(address: str, endpoint: str = 'etherscan.com', startblock: int = 0) -> list:
