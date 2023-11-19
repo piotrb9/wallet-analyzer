@@ -1,4 +1,4 @@
-/data/api_keys.ini
+/src/data/
 /.idea/
 *.xml
 *.iml
