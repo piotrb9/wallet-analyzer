@@ -230,6 +230,110 @@ class WalletAnalyzer:
         self.token_txs_df = pd.read_csv(folder + f'/{self.wallet}_token_txs_df.csv', sep='\t', encoding='utf-8')
         self.internal_txs_df = pd.read_csv(folder + f'/{self.wallet}_internal_txs_df.csv', sep='\t', encoding='utf-8')
 
+    def calculate_swap_txs(self) -> None:
+        """
+        Get the data about the trades from the token transactions df
+        :return: None
+        """
+
+        # swap buy - when tx send ETH from self.wallet and token_tx send tokens in self.wallet
+        # swap sell - when internal_tx send ETH in self.wallet and token_tx send tokens from self.wallet
+        self.txs_df[['swapType', 'swapEth', 'tokenValue', 'tokenName', 'tokenSymbol', 'tokenCa',
+                     'tokenDecimal']] = self.txs_df.apply(
+            lambda row: self.get_info_from_token_txs(row['hash'], row['txType'], row['value']),
+            axis=1)
+
+    def get_info_from_token_txs(self, tx_hash: str, tx_type: str, value: float) -> pd.Series:
+        """
+        Get information about the transaction for the token_txs_df. Use it to merge data of txs_df with token_txs_df.
+        :param tx_hash: Transaction hash
+        :param tx_type: Transaction type
+        :param value: Transaction value
+        :return: Series with the information about the transaction
+        """
+
+        tx = self.token_txs_df[self.token_txs_df['hash'] == tx_hash]
+
+        token_value = np.nan
+        token_name = np.nan
+        token_symbol = np.nan
+        token_decimal = np.nan
+        token_ca = np.nan
+        swap_type = np.nan
+        swap_eth = np.nan
+
+        try:
+            # buy
+            if tx_type == 'swap_tx_nonzero_value':
+                if tx.shape[0] == 1:
+                    if tx['to'].item() == self.wallet:
+                        token_value = tx['value'].item()
+                        token_name = tx['tokenName'].item()
+                        token_symbol = tx['tokenSymbol'].item()
+                        token_decimal = tx['tokenDecimal'].item()
+                        token_ca = tx['contractAddress'].item()
+                        swap_type = 'swap_buy'
+                        swap_eth = value
+            # sell
+            elif tx_type == 'swap_tx_zero_value':
+                # Find ETH in internal txs
+                internal_tx = self.internal_txs_df[self.internal_txs_df['hash'] == tx_hash]
+                if internal_tx.shape[0] == 1:
+                    if internal_tx['to'].item() == self.wallet:
+                        swap_type = 'swap_sell'
+                        swap_eth = internal_tx['value'].item()
+
+                        # Get token info
+                        token_value = tx['value'].sum()
+                        token_name = tx['tokenName'].iloc[0]
+                        token_symbol = tx['tokenSymbol'].iloc[0]
+                        token_decimal = tx['tokenDecimal'].iloc[0]
+                        token_ca = tx['contractAddress'].iloc[0]
+
+            elif tx_type == 'other':
+                # OTHER BUY
+                if tx.shape[0] == 1:
+                    if tx['to'].item() == self.wallet and value != 0:
+                        token_value = tx['value'].item()
+                        token_name = tx['tokenName'].item()
+                        token_symbol = tx['tokenSymbol'].item()
+                        token_decimal = tx['tokenDecimal'].item()
+                        token_ca = tx['contractAddress'].item()
+                        swap_type = 'other_buy'
+                        swap_eth = value
+                else:
+                    # OTHER SELL
+                    internal_tx = self.internal_txs_df[self.internal_txs_df['hash'] == tx_hash]
+
+                    if internal_tx.shape[0] == 1:
+                        if internal_tx['to'].item() == self.wallet and value == 0:
+                            swap_type = 'other_sell'
+                            swap_eth = internal_tx['value'].item()
+
+                            # Get token info
+                            token_value = tx['value'].sum()
+                            token_name = tx['tokenName'].iloc[0]
+                            token_symbol = tx['tokenSymbol'].iloc[0]
+                            token_decimal = tx['tokenDecimal'].iloc[0]
+
+            elif tx_type == 'tokens_transfer_out':
+                swap_type = np.nan
+                swap_eth = np.nan
+
+                # Get token info
+                if tx.shape[0] > 0:
+                    token_value = tx['value'].sum()
+                    token_name = tx['tokenName'].iloc[0]
+                    token_symbol = tx['tokenSymbol'].iloc[0]
+                    token_decimal = tx['tokenDecimal'].iloc[0]
+                    token_ca = tx['contractAddress'].iloc[0]
+        except IndexError:
+            pass
+
+        return pd.Series([swap_type, swap_eth, token_value, token_name, token_symbol, token_ca, token_decimal],
+                         index=['swapType', 'swapEth', 'tokenValue', 'tokenName', 'tokenSymbol', 'tokenCa',
+                                'tokenDecimal'])
+
 
 if __name__ == "__main__":
     wallet_analyzer = WalletAnalyzer("0x7e5e597c3005037246f9efdb61f79d193d1d546c")
