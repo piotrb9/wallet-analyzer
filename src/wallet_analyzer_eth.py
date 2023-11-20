@@ -210,6 +210,26 @@ class WalletAnalyzer:
 
         return tx_type
 
+    def save_data(self, folder: str = "data") -> None:
+        """
+        Save the txs_df, token_txs_df and internal_txs_df dataframes to separate CSV files in the given dir
+        :param folder: directory of the files
+        :return: None
+        """
+        self.txs_df.to_csv(folder + f'/{self.wallet}_txs_df.csv', sep='\t', encoding='utf-8')
+        self.token_txs_df.to_csv(folder + f'/{self.wallet}_token_txs_df.csv', sep='\t', encoding='utf-8')
+        self.internal_txs_df.to_csv(folder + f'/{self.wallet}_internal_txs_df.csv', sep='\t', encoding='utf-8')
+
+    def load_data(self, folder: str = "data") -> None:
+        """
+        Same as self.get_data but loads the data from 3 CSV files located in the dir
+        :param folder: directory of the files
+        :return: None
+        """
+        self.txs_df = pd.read_csv(folder + f'/{self.wallet}_txs_df.csv', sep='\t', encoding='utf-8')
+        self.token_txs_df = pd.read_csv(folder + f'/{self.wallet}_token_txs_df.csv', sep='\t', encoding='utf-8')
+        self.internal_txs_df = pd.read_csv(folder + f'/{self.wallet}_internal_txs_df.csv', sep='\t', encoding='utf-8')
+
 
 if __name__ == "__main__":
     wallet_analyzer = WalletAnalyzer("0x7e5e597c3005037246f9efdb61f79d193d1d546c")
