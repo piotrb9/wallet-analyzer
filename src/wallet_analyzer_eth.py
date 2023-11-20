@@ -19,17 +19,42 @@ class WalletAnalyzer:
 
         if self.chain == 'eth':
             uniswap_universal_router_address = '0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD'.lower()
+
+            uniswap_old_universal_router = '0xEf1c6E67703c7BD7107eed8303Fbe6EC2554BF6B'.lower()
             uniswap_v2_router_2_address = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'.lower()
             uniswap_v3_router_2_address = '0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45'.lower()
+            sushiswap_router_address = '0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F'.lower()
+            inch_v5_aggregation_router_address = '0x1111111254EEB25477B68fb85Ed929f73A960582'.lower()
+            metamask_swap_router = '0x881D40237659C251811CEC9c364ef91dC08D300C'.lower()
+            kyberswap_meta_aggregation_router_v2 = '0x6131B5fae19EA4f9D964eAc0408E4408b66337b5'.lower()
+            rainbow_router = '0x00000000009726632680FB29d3F7A9734E3010E2'.lower()
 
-            self.routers = [uniswap_v2_router_2_address, uniswap_v3_router_2_address, uniswap_universal_router_address]
+            self.routers = [uniswap_v2_router_2_address, uniswap_v3_router_2_address, sushiswap_router_address,
+                            uniswap_old_universal_router, inch_v5_aggregation_router_address, metamask_swap_router,
+                            kyberswap_meta_aggregation_router_v2, rainbow_router, uniswap_universal_router_address]
 
         # For the implementation of the BSC chain
         elif self.chain == 'bsc':
             pancakeswap_v2_universal_router = '0x10ED43C718714eb63d5aA57B78B54704E256024E'.lower()
             pancakeswap_v3_universal_router = '0x13f4EA83D0bd40E75C8222255bc855a974568Dd4'.lower()
+            kyberswap_meta_aggregation_router_v2 = '0x6131B5fae19EA4f9D964eAc0408E4408b66337b5'.lower()
+            metamask_swap_router = '0x1a1ec25DC08e98e5E93F1104B5e5cdD298707d31'.lower()
+            rainbow_router = '0x00000000009726632680FB29d3F7A9734E3010E2'.lower()
+            apeswap_router = '0xC0788A3aD43d79aa53B09c2EaCc313A787d1d607'.lower()
+            bakeryswap_router = '0xCDe540d7eAFE93aC5fE6233Bee57E1270D3E330F'.lower()
+            beltfinance_router = '0x9cb73F20164e399958261c289Eb5F9846f4D1404'.lower()
+            burger_swap_router = '0x58F876857a02D6762E0101bb5C46A8c1ED44Dc16'.lower()
+            cafeswap_router = '0x933DAea3a5995Fb94b14A7696a5F3ffD7B1E385A'.lower()
+            cakedefi_router = '0x0ED7e52944161450477ee417DE9Cd3a859b14fD0'.lower()
+            crowfinance_router = '0x3e9c2ee838072b370567efc2df27602d776b341c'.lower()
+            dopple_router = '0x029f944cd3afa7c229122b19c706d8f9c6bcc963'.lower()
+            ellipsis_router = '0x160CAed03795365F3A589f10C379FfA7d75d4E76'.lower()
+            sushiswap_router_address = '0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506'.lower()
 
-            self.routers = [pancakeswap_v2_universal_router, pancakeswap_v3_universal_router]
+            self.routers = [pancakeswap_v2_universal_router, pancakeswap_v3_universal_router, rainbow_router,
+                            apeswap_router, bakeryswap_router, beltfinance_router, burger_swap_router, cafeswap_router,
+                            cakedefi_router, crowfinance_router, dopple_router, ellipsis_router,
+                            sushiswap_router_address, kyberswap_meta_aggregation_router_v2, metamask_swap_router]
 
     def get_data(self, startblock=0):
         """
