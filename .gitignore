@@ -1,4 +1,5 @@
 /src/data/
+/src/cache/
 /.idea/
 *.xml
 *.iml
