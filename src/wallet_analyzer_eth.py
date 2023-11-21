@@ -373,7 +373,8 @@ class WalletAnalyzer:
 
         return gas_price_df
 
-    def get_swap_txs(self, drop_snipes: bool = False, include_other_swap_types: bool = False) -> pd.DataFrame:
+    def get_swap_txs(self, drop_snipes: bool = False, include_other_swap_types: bool = False,
+                     drop_in_out_tokens: bool = False) -> pd.DataFrame:
         """
         Get all the swap transactions (buy and sell) from the txs_df
         :param drop_snipes: whether to drop all transaction of tokens that have snipe transactions
@@ -396,6 +397,10 @@ class WalletAnalyzer:
         if drop_snipes:
             swap_txs_df = self.drop_snipes(swap_txs_df)
 
+        # Drop all tokens that have in/out transactions
+        if drop_in_out_tokens:
+            swap_txs_df = self.drop_in_out_tokens(swap_txs_df)
+
         return swap_txs_df
 
     def drop_snipes(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -407,6 +412,19 @@ class WalletAnalyzer:
         snipes_ca_list = self.txs_df.loc[self.txs_df['snipe'] == True, 'tokenCa'].unique()
 
         df = df.loc[~df['tokenCa'].isin(snipes_ca_list)]
+
+        return df
+
+    def drop_in_out_tokens(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Remove all the transactions with tokens that have at least 1 in/out transaction
+        :param df: dataframe with all the transactions
+        :return: dataframe with all the transactions with tokens with in/out transactions removed
+        """
+        in_out_tokens_list = self.txs_df.loc[(self.txs_df['txType'] == 'tokens_transfer_in') | (
+                self.txs_df['txType'] == 'tokens_transfer_out'), 'tokenCa'].unique()
+
+        df = df.loc[~df['tokenCa'].isin(in_out_tokens_list)]
 
         return df
 
