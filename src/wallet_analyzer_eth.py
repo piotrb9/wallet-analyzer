@@ -373,9 +373,47 @@ class WalletAnalyzer:
 
         return gas_price_df
 
+    def get_swap_txs(self, drop_snipes: bool = False, include_other_swap_types: bool = False) -> pd.DataFrame:
+        """
+        Get all the swap transactions (buy and sell) from the txs_df
+        :param drop_snipes: whether to drop all transaction of tokens that have snipe transactions
+        :param include_other_swap_types: whether to include other swap types (other_buy, other_sell)
+        :param drop_in_out_tokens: whether to drop all transaction of tokens that have in/out transactions
+        :param drop_stablecoins_swaps: whether to drop stablecoins swaps
+        :return: dataframe with all the swap transactions
+        """
+
+        # Other swap types means swaps that are not made via known router, but looks like they are trades
+        if include_other_swap_types:
+            swap_txs_df = self.txs_df.loc[
+                (self.txs_df['swapType'] == 'swap_buy') | (self.txs_df['swapType'] == 'swap_sell')
+                | (self.txs_df['swapType'] == 'other_buy') | (self.txs_df['swapType'] == 'other_sell')]
+        else:
+            swap_txs_df = self.txs_df.loc[
+                (self.txs_df['swapType'] == 'swap_buy') | (self.txs_df['swapType'] == 'swap_sell')]
+
+        # Drop snipes (every token that has at least 1 tx like that)
+        if drop_snipes:
+            swap_txs_df = self.drop_snipes(swap_txs_df)
+
+        return swap_txs_df
+
+    def drop_snipes(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Remove all the transactions with tokens that have at least 1 snipe transaction
+        :param df: dataframe with all the transactions
+        :return: dataframe with all the transactions with tokens with snipe transactions removed
+        """
+        snipes_ca_list = self.txs_df.loc[self.txs_df['snipe'] == True, 'tokenCa'].unique()
+
+        df = df.loc[~df['tokenCa'].isin(snipes_ca_list)]
+
+        return df
+
 
 if __name__ == "__main__":
     wallet_analyzer = WalletAnalyzer("0x7e5e597c3005037246f9efdb61f79d193d1d546c")
     wallet_analyzer.get_data()
     wallet_analyzer.calculate_swap_txs()
-    print(1)
+    wallet_analyzer.check_snipers()
+    print("Done")
