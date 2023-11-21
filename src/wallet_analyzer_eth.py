@@ -351,6 +351,9 @@ class WalletAnalyzer:
         self.txs_df['date_only'] = pd.to_datetime(self.txs_df['date_only'])
         self.txs_df = pd.merge(self.txs_df, gas_price_df, left_on='date_only', right_on='date', how='left')
 
+        # Fill the None values
+        self.txs_df['avgGasPrice'] = self.txs_df['avgGasPrice'].fillna(99999999999)
+
         self.txs_df['snipe'] = (self.txs_df['gasPrice'] > max_allowed_overshoot * self.txs_df['avgGasPrice']) & (
                 self.txs_df['swapType'] == 'swap_buy')
 
