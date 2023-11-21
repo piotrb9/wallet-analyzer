@@ -1,4 +1,6 @@
 """Analysis of a ETH wallet"""
+import os
+
 from download_wallet_txs import get_txs, get_token_txs, get_internal_txs
 import pandas as pd
 import numpy as np
@@ -334,7 +336,43 @@ class WalletAnalyzer:
                          index=['swapType', 'swapEth', 'tokenValue', 'tokenName', 'tokenSymbol', 'tokenCa',
                                 'tokenDecimal'])
 
+    def check_snipers(self, max_allowed_overshoot: float = 1.6) -> None:
+        """
+        Mark the snipe transactions (with high gas price)
+        :param max_allowed_overshoot: Max allowed gas price overshoot (compared to the avg gas price in the selected day)
+        :return: None
+        """
+        current_location = os.path.dirname(os.path.realpath(__file__))
+
+        gas_price_df = self.load_gas_price_history(os.path.join(current_location, 'data/export-AvgGasPrice.csv'))
+        # Check every txs_df record if the gasPrice is greater than max_allowed_overshoot*avg gas price in the selected day
+        self.txs_df['dateTime'] = pd.to_datetime(self.txs_df['timeStamp'], unit='s')
+        self.txs_df['date_only'] = self.txs_df['dateTime'].dt.date
+        self.txs_df['date_only'] = pd.to_datetime(self.txs_df['date_only'])
+        self.txs_df = pd.merge(self.txs_df, gas_price_df, left_on='date_only', right_on='date', how='left')
+
+        self.txs_df['snipe'] = (self.txs_df['gasPrice'] > max_allowed_overshoot * self.txs_df['avgGasPrice']) & (
+                self.txs_df['swapType'] == 'swap_buy')
+
+        self.txs_df = self.txs_df.drop(columns=['date_only', 'date', 'avgGasPrice'])
+
+    def load_gas_price_history(self, file='data/export-AvgGasPrice.csv') -> pd.DataFrame:
+        """
+        Load gas price history (export data from Etherscan.io)
+        :param file: CSV file with gas price history
+        :return: dataframe with gas price history
+        """
+        gas_price_df = pd.read_csv(file, header=0)
+
+        gas_price_df["date"] = pd.to_datetime(gas_price_df["Date(UTC)"])
+        gas_price_df["avgGasPrice"] = gas_price_df["Value (Wei)"].astype(np.int64)
+        gas_price_df = gas_price_df.drop(columns=["UnixTimeStamp", "Date(UTC)", "Value (Wei)"])
+
+        return gas_price_df
+
 
 if __name__ == "__main__":
     wallet_analyzer = WalletAnalyzer("0x7e5e597c3005037246f9efdb61f79d193d1d546c")
     wallet_analyzer.get_data()
+    wallet_analyzer.calculate_swap_txs()
+    print(1)
