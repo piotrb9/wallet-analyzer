@@ -35,6 +35,18 @@ class WalletAnalyzer:
                             uniswap_old_universal_router, inch_v5_aggregation_router_address, metamask_swap_router,
                             kyberswap_meta_aggregation_router_v2, rainbow_router, uniswap_universal_router_address]
 
+            # Source: https://ethplorer.io/tag/stablecoins#
+            self.stablecoins = ["0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                                "0x6b175474e89094c44da98b954eedeac495271d0f",
+                                "0x8e870d67f660d95d5be530380d0ec0bd388289e1",
+                                "0x4fabb145d64652a948d72533023f6e7a623c7c53",
+                                "0x0000000000085d4780b73119b644ae5ecd22b376",
+                                "0xa47c8bf37f92abed4a126bda807a7b7498661acd",
+                                "0x853d955acef822db058eb8505911ed77f175b99e",
+                                "0x056fd409e1d7a124bd7017459dfea2f387b6d5cd",
+                                "0x57ab1ec28d129707052df4df418d58a2d46d5f51"]
+
         # For the implementation of the BSC chain
         elif self.chain == 'bsc':
             pancakeswap_v2_universal_router = '0x10ED43C718714eb63d5aA57B78B54704E256024E'.lower()
@@ -57,6 +69,16 @@ class WalletAnalyzer:
                             apeswap_router, bakeryswap_router, beltfinance_router, burger_swap_router, cafeswap_router,
                             cakedefi_router, crowfinance_router, dopple_router, ellipsis_router,
                             sushiswap_router_address, kyberswap_meta_aggregation_router_v2, metamask_swap_router]
+
+            self.stablecoins = ["0xe9e7cea3dedca5984780bafc599bd69add087d56",
+                                "0x55d398326f99059ff775485246999027b3197955",
+                                "0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3",
+                                "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+                                "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+                                "0x55d398326f99059ff775485246999027b3197955",
+                                "0x23396cf899ca06c4472205fc903bdb4de249d6fc",
+                                "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+                                "0x55d398326f99059fF775485246999027B3197955"]
 
     def get_data(self, startblock=0):
         """
@@ -374,7 +396,7 @@ class WalletAnalyzer:
         return gas_price_df
 
     def get_swap_txs(self, drop_snipes: bool = False, include_other_swap_types: bool = False,
-                     drop_in_out_tokens: bool = False) -> pd.DataFrame:
+                     drop_in_out_tokens: bool = False, drop_stablecoins_swaps: bool = True) -> pd.DataFrame:
         """
         Get all the swap transactions (buy and sell) from the txs_df
         :param drop_snipes: whether to drop all transaction of tokens that have snipe transactions
@@ -400,6 +422,10 @@ class WalletAnalyzer:
         # Drop all tokens that have in/out transactions
         if drop_in_out_tokens:
             swap_txs_df = self.drop_in_out_tokens(swap_txs_df)
+
+        # Do not consider stablecoins swaps
+        if drop_stablecoins_swaps:
+            swap_txs_df = swap_txs_df.loc[~swap_txs_df['tokenCa'].isin(self.stablecoins)]
 
         return swap_txs_df
 
