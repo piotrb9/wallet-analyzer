@@ -507,6 +507,27 @@ class WalletAnalyzer:
         except KeyError:
             pass
 
+    def check_internal_transfers(self):
+        """
+        For ETH transfers via contracts
+        :return: None
+        """
+
+        # Incoming ETH transfers
+        try:
+            incoming_transfers_df = self.internal_txs_df.loc[
+                ~self.internal_txs_df['hash'].isin(self.txs_df['hash'])].copy()
+        except KeyError:
+            return
+
+        # Make sure tokens go to the self.wallet
+        incoming_transfers_df = incoming_transfers_df[incoming_transfers_df['to'] == self.wallet]
+        incoming_transfers_df['txType'] = 'eth_other_transfer_in'
+
+        self.txs_df = pd.concat([self.txs_df, incoming_transfers_df])
+
+        self.txs_df = self.txs_df.drop(columns=['type', 'traceId', 'errCode'])
+
 
 if __name__ == "__main__":
     wallet_analyzer = WalletAnalyzer("0x7e5e597c3005037246f9efdb61f79d193d1d546c")
