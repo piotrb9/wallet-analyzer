@@ -454,6 +454,59 @@ class WalletAnalyzer:
 
         return df
 
+    def check_token_transfers(self):
+        """
+        Check for token transfers in and out (including stablecoins)
+        :return: None
+        """
+        # Incoming transfers - only in 'token transfers' tab
+        # Check for tx hashes in self.token_txs_df that are not in the self.txs_df
+        try:
+            incoming_transfers_df = self.token_txs_df.loc[~self.token_txs_df['hash'].isin(self.txs_df['hash'])].copy()
+
+            # Make sure tokens go to the self.wallet
+            incoming_transfers_df = incoming_transfers_df[incoming_transfers_df['to'] == self.wallet]
+            incoming_transfers_df['txType'] = 'tokens_transfer_in'
+
+            incoming_transfers_df.loc[
+                incoming_transfers_df['contractAddress'].isin(self.stablecoins), 'txType'] = 'stablecoins_transfer_in'
+            incoming_transfers_df['tokenValue'] = incoming_transfers_df['value'].astype(float)
+            incoming_transfers_df['value'] = 0
+            incoming_transfers_df['isError'] = 0
+            incoming_transfers_df.rename(columns={'contractAddress': 'tokenCa'}, inplace=True)
+
+            self.txs_df = pd.concat([self.txs_df, incoming_transfers_df])
+
+        except KeyError:
+            pass
+
+        # Out-coming transfers - in 'transactions' tab, additional info from 'token transfers' tab
+        # Just copy info from 'token transfers' df to the 'transfers' df for the rows where 'txType' == 'other',
+        # 'from' == self.wallet, 'value' == 0
+        try:
+            self.txs_df.loc[(self.txs_df['txType'] == 'other') & (self.txs_df['from'] == self.wallet) & (
+                    self.txs_df['value'] == 0), 'txType'] = 'tokens_transfer_out'
+
+            tokens_transfer_out_df = self.txs_df.loc[self.txs_df['txType'] == 'tokens_transfer_out']
+
+            tokens_transfer_out_df.loc[:, ['swapType', 'swapEth', 'tokenValue', 'tokenName', 'tokenSymbol', 'tokenCa',
+                                           'tokenDecimal']] = tokens_transfer_out_df.apply(
+                lambda row: self.get_info_from_token_txs(row['hash'], 'tokens_transfer_out', 0), axis=1)
+
+            tokens_transfer_out_df.loc[(tokens_transfer_out_df['tokenCa'].isin(self.stablecoins)) & (
+                    tokens_transfer_out_df[
+                        'txType'] == 'tokens_transfer_out'), 'txType'] = 'stablecoins_transfer_out'
+
+            tokens_transfer_out_df.set_index('hash', inplace=True)
+            self.txs_df.set_index('hash', inplace=True)
+
+            self.txs_df.update(tokens_transfer_out_df)
+
+            self.txs_df.reset_index(inplace=True)
+
+        except KeyError:
+            pass
+
 
 if __name__ == "__main__":
     wallet_analyzer = WalletAnalyzer("0x7e5e597c3005037246f9efdb61f79d193d1d546c")
