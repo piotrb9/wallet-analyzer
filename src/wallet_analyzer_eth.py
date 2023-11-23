@@ -550,10 +550,47 @@ class WalletAnalyzer:
             if 'timeStamp' in self.internal_txs_df.columns:
                 self.internal_txs_df = self.internal_txs_df.loc[self.internal_txs_df['timeStamp'] <= stop]
 
+    def calculate_tokens_txs(self, drop_snipes: bool = False, include_other_swap_types: bool = False,
+                             drop_in_out_tokens: bool = False) -> None:
+        """
+        Creates self.token_trades df containing aggregated info about trades per every token
+        :param drop_snipes:
+        :param include_other_swap_types:
+        :param drop_in_out_tokens:
+        :return: None
+        """
 
-if __name__ == "__main__":
-    wallet_analyzer = WalletAnalyzer("0x7e5e597c3005037246f9efdb61f79d193d1d546c")
-    wallet_analyzer.get_data()
-    wallet_analyzer.calculate_swap_txs()
-    wallet_analyzer.check_snipers()
-    print("Done")
+        # other swap types means swaps that are not made via known router, but looks like they are trades
+        swap_txs_df = self.get_swap_txs(drop_snipes, include_other_swap_types, drop_in_out_tokens)
+
+        # Basic info
+        traded_tokens_number = swap_txs_df['tokenCa'].nunique()
+        print(f"Traded tokens: {traded_tokens_number}")
+
+        trades_per_token = swap_txs_df.groupby('tokenCa')['tokenName'].count()
+        total_trades_number = trades_per_token.sum()
+
+        print(f"Total trades: {total_trades_number}")
+
+        # Buy-sell info per token
+        txs_eth = swap_txs_df.groupby(['tokenCa', 'swapType'])['swapEth'].sum()
+
+        txs_tokens = swap_txs_df.groupby(['tokenCa', 'swapType'])['tokenValue'].sum()
+
+        txs_number = swap_txs_df.groupby(['tokenCa', 'swapType'])['hash'].count()
+
+        df = pd.concat([txs_eth, txs_tokens, txs_number], axis=1)
+        df.rename(columns={'hash': 'orders'}, inplace=True)
+
+        df['tokenResult'] = df.groupby('tokenCa')['tokenValue'].transform('diff')
+        df['ethResult'] = df.groupby('tokenCa')['swapEth'].transform('diff')
+
+        # Calculate % of the unsold tokens
+        df['unsoldTokensPercentage'] = -df['tokenResult'] / (df['tokenValue'] + df['tokenResult'].abs()) * 100
+
+        # Calculate percentage trade result per token
+        # ethResult/swap buy
+        df['tradeResultPercentage'] = df['ethResult'] * 100 / (df['swapEth'] - df['ethResult']) + 100
+
+        self.token_trades = df
+
