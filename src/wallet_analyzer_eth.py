@@ -528,6 +528,28 @@ class WalletAnalyzer:
 
         self.txs_df = self.txs_df.drop(columns=['type', 'traceId', 'errCode'])
 
+    def select_data_by_timestamp(self, start=None, stop=None):
+        """
+        Select only trades in a given timeframe
+        :param start: start timestamp
+        :param stop: stop timestamp
+        :return: None
+        """
+
+        if start:
+            self.txs_df = self.txs_df.loc[self.txs_df['timeStamp'] >= start]
+            self.token_txs_df = self.token_txs_df.loc[self.token_txs_df['timeStamp'] >= start]
+
+            if 'timeStamp' in self.internal_txs_df.columns:
+                self.internal_txs_df = self.internal_txs_df.loc[self.internal_txs_df['timeStamp'] >= start]
+
+        if stop:
+            self.txs_df = self.txs_df.loc[self.txs_df['timeStamp'] <= stop]
+            self.token_txs_df = self.token_txs_df.loc[self.token_txs_df['timeStamp'] <= stop]
+
+            if 'timeStamp' in self.internal_txs_df.columns:
+                self.internal_txs_df = self.internal_txs_df.loc[self.internal_txs_df['timeStamp'] <= stop]
+
 
 if __name__ == "__main__":
     wallet_analyzer = WalletAnalyzer("0x7e5e597c3005037246f9efdb61f79d193d1d546c")
