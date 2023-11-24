@@ -703,3 +703,18 @@ class WalletAnalyzer:
 
         return median_trade_size
 
+    def avg_trade_result(self, perc: bool = False) -> float:
+        """
+        How big is the average result of a trade (in ETH or %). Only for trades that have both buy&sell transactions!
+        :param perc: whether to return the result in % (if False, in ETH)
+        :return: average result of trade in ETH or %. 100% means you gained 0 ETH
+        """
+        assert self.token_trades is not None, 'Use self.calculate_tokens_txs() first!'
+
+        if perc:
+            avg_trade_result = self.token_trades.loc[:, 'tradeResultPercentage'].mean()
+        else:
+            avg_trade_result = self.token_trades.loc[:, 'ethResult'].mean()
+
+        return avg_trade_result
+
