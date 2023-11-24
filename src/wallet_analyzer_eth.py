@@ -605,3 +605,25 @@ class WalletAnalyzer:
 
         return snipes_number * 100 / total_trades_number
 
+    def trades_per_day(self, drop_snipes: bool = False, include_other_swap_types: bool = False,
+                       drop_in_out_tokens: bool = False) -> pd.DataFrame:
+        """
+        Calculate how many trades were made every day
+        :param drop_snipes: whether to drop all transaction of tokens that have snipe transactions
+        :param include_other_swap_types: whether to include other swap types (other_buy, other_sell)
+        :param drop_in_out_tokens: whether to drop all transaction of tokens that have in/out transactions
+        :return: dataframe with the number of trades per day
+        """
+        swap_txs_df = self.get_swap_txs(drop_snipes, include_other_swap_types, drop_in_out_tokens)
+
+        swap_txs_df['date'] = pd.to_datetime(swap_txs_df.loc[:, 'timeStamp'], unit='s').dt.date
+
+        trades_per_day_df = swap_txs_df.groupby(['date'])['hash'].count()
+
+        trades_per_day_df = trades_per_day_df.to_frame().reset_index()
+
+        trades_per_day_df = trades_per_day_df.rename(columns={'hash': 'trades_number'})
+        trades_per_day_df.index.name = 'index'
+
+        return trades_per_day_df
+
