@@ -627,3 +627,37 @@ class WalletAnalyzer:
 
         return trades_per_day_df
 
+    def cumulated_daily_trading_result(self, drop_snipes: bool = False, include_other_swap_types: bool = False,
+                                       drop_in_out_tokens: bool = False) -> pd.DataFrame:
+        """
+        Cumulative daily TRADING result (total sell-buy)
+        :param drop_snipes: whether to drop all transaction of tokens that have snipe transactions
+        :param include_other_swap_types: whether to include other swap types (other_buy, other_sell)
+        :param drop_in_out_tokens: whether to drop all transaction of tokens that have in/out transactions
+        :return: dataframe with the cumulated daily trading result
+        """
+
+        swap_txs_df = self.get_swap_txs(drop_snipes, include_other_swap_types, drop_in_out_tokens)
+
+        swap_txs_df = swap_txs_df.sort_values(by=['timeStamp'])
+
+        swap_txs_df['date'] = pd.to_datetime(swap_txs_df.loc[:, 'timeStamp'], unit='s').dt.date
+
+        swap_txs_df['cumBuy'] = swap_txs_df.loc[swap_txs_df['swapType'] == 'swap_buy', 'swapEth'].cumsum()
+        swap_txs_df['cumSell'] = swap_txs_df.loc[swap_txs_df['swapType'] == 'swap_sell', 'swapEth'].cumsum()
+
+        # Fill nan values with the last cumulative value
+        swap_txs_df['cumBuy'] = swap_txs_df['cumBuy'].fillna(method='ffill')
+        swap_txs_df['cumSell'] = swap_txs_df['cumSell'].fillna(method='ffill')
+
+        # Reset index
+        swap_txs_df.reset_index(inplace=True)
+
+        # Fill nan with 0
+        swap_txs_df['cumBuy'] = swap_txs_df['cumBuy'].fillna(0)
+        swap_txs_df['cumSell'] = swap_txs_df['cumSell'].fillna(0)
+
+        swap_txs_df['cumResult'] = swap_txs_df['cumSell'] - swap_txs_df['cumBuy']
+
+        return swap_txs_df
+
