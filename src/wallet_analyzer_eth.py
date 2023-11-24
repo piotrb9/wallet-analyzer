@@ -594,3 +594,14 @@ class WalletAnalyzer:
 
         self.token_trades = df
 
+    def snipes_percent(self) -> float:
+        """
+        How many swaps were snipes (with high gas fee)
+        :return: percentage of snipe transactions
+        """
+
+        snipes_number = self.txs_df.loc[self.txs_df['snipe'] == True].shape[0]
+        total_trades_number = self.txs_df.shape[0]
+
+        return snipes_number * 100 / total_trades_number
+
