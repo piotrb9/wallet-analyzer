@@ -661,3 +661,13 @@ class WalletAnalyzer:
 
         return swap_txs_df
 
+    def final_trade_result(self) -> float:
+        """
+        Final trade result based on the self.token_trades, only for tokens that have both buy and sell txs
+        :return: final trade result in ETH
+        """
+
+        final_trading_eth_result = self.token_trades['ethResult'].sum()
+
+        return final_trading_eth_result
+
