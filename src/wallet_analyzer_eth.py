@@ -674,3 +674,32 @@ class WalletAnalyzer:
 
         return final_trading_eth_result
 
+    def avg_trade_size(self) -> float:
+        """
+        How big is the average bet (in ETH)
+        :return: average buy order size in ETH
+        """
+        assert self.token_trades is not None, 'Use self.calculate_tokens_txs() first!'
+
+        buy_orders_number = self.token_trades.xs('swap_buy', level=1, drop_level=False)['orders'].sum()
+        buy_orders_value = self.token_trades.xs('swap_buy', level=1, drop_level=False)['swapEth'].sum()
+
+        return buy_orders_value / buy_orders_number
+
+    def median_trade_size(self, drop_snipes: bool = False, include_other_swap_types: bool = False,
+                          drop_in_out_tokens: bool = False) -> float:
+        """
+        How big is the median bet (in ETH)
+        :param drop_snipes: whether to drop all transaction of tokens that have snipe transactions
+        :param include_other_swap_types: whether to include other swap types (other_buy, other_sell)
+        :param drop_in_out_tokens: whether to drop all transaction of tokens that have in/out transactions
+        :return: median buy order size in ETH
+        """
+        assert self.txs_df is not None, 'Use self.get_data() first!'
+
+        swap_txs_df = self.get_swap_txs(drop_snipes, include_other_swap_types, drop_in_out_tokens)
+
+        median_trade_size = swap_txs_df.loc[swap_txs_df['swapType'] == 'swap_buy', 'swapEth'].median()
+
+        return median_trade_size
+
