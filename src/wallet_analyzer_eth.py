@@ -667,6 +667,9 @@ class WalletAnalyzer:
         :return: final trade result in ETH
         """
 
+        # Only for tokens that have both sell and buy transactions!
+        assert self.token_trades is not None, 'Use self.calculate_tokens_txs() first!'
+
         final_trading_eth_result = self.token_trades['ethResult'].sum()
 
         return final_trading_eth_result
