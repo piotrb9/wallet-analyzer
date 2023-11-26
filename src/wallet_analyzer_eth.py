@@ -718,3 +718,25 @@ class WalletAnalyzer:
 
         return avg_trade_result
 
+    def win_ratio_percent(self) -> float:
+        """
+        How many trades were profitable (in %)
+        :return: percentage of profitable trades
+        """
+        df = self.token_trades
+        df1 = df.groupby(level=0).size().reset_index(name='txs_number2')
+        df1 = df1.set_index('tokenCa')
+
+        token_ca = df.index.get_level_values('tokenCa')
+        df['txsNumber'] = df1.loc[token_ca].values
+
+        df.loc[df['txsNumber'] == 1, 'tradeResultPercentage'] = 0
+
+        df.loc[df['tradeResultPercentage'] > 100, 'win'] = True
+        df.loc[df['tradeResultPercentage'] <= 100, 'win'] = False
+
+        win_number = len(df[df['win'] == True])
+        lose_number = len(df[df['win'] == False])
+
+        return win_number * 100 / (win_number + lose_number)
+
