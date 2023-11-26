@@ -1,4 +1,5 @@
 """Analysis of a ETH wallet"""
+import datetime
 import os
 
 from download_wallet_txs import get_txs, get_token_txs, get_internal_txs
@@ -739,4 +740,24 @@ class WalletAnalyzer:
         lose_number = len(df[df['win'] == False])
 
         return win_number * 100 / (win_number + lose_number)
+
+    def first_tx_datetime(self) -> datetime.datetime:
+        """
+        Get the datetime of the first transaction
+        :return: datetime of the first transaction
+        """
+
+        first_tx_datetime = self.txs_df.loc[:, 'timeStamp'].min()
+
+        return datetime.datetime.fromtimestamp(first_tx_datetime)
+
+    def last_tx_datetime(self) -> datetime.datetime:
+        """
+        Get the datetime of the last transaction
+        :return: datetime of the last transaction
+        """
+
+        last_tx_datetime = self.txs_df.loc[:, 'timeStamp'].max()
+
+        return datetime.datetime.fromtimestamp(last_tx_datetime)
 
