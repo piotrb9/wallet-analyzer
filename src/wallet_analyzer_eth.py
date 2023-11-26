@@ -761,3 +761,37 @@ class WalletAnalyzer:
 
         return datetime.datetime.fromtimestamp(last_tx_datetime)
 
+    def first_trade_datetime(self, drop_snipes: bool = False, include_other_swap_types: bool = False,
+                             drop_in_out_tokens: bool = False) -> datetime.datetime:
+        """
+        Get the datetime of the first transaction
+        :param drop_snipes: whether to drop all transaction of tokens that have snipe transactions
+        :param include_other_swap_types: whether to include other swap types (other_buy, other_sell)
+        :param drop_in_out_tokens: whether to drop all transaction of tokens that have in/out transactions
+        :return: datetime of the first transaction
+        """
+        assert self.txs_df is not None, 'Use self.get_data() first!'
+
+        swap_txs_df = self.get_swap_txs(drop_snipes, include_other_swap_types, drop_in_out_tokens)
+
+        first_swap_datetime = swap_txs_df.loc[:, 'timeStamp'].min()
+
+        return datetime.datetime.fromtimestamp(first_swap_datetime)
+
+    def last_trade_datetime(self, drop_snipes: bool = False, include_other_swap_types: bool = False,
+                            drop_in_out_tokens: bool = False) -> datetime.datetime:
+        """
+        Get the datetime of the first transaction
+        :param drop_snipes: whether to drop all transaction of tokens that have snipe transactions
+        :param include_other_swap_types: whether to include other swap types (other_buy, other_sell)
+        :param drop_in_out_tokens: whether to drop all transaction of tokens that have in/out transactions
+        :return:
+        """
+        assert self.txs_df is not None, 'Use self.get_data() first!'
+
+        swap_txs_df = self.get_swap_txs(drop_snipes, include_other_swap_types, drop_in_out_tokens)
+
+        last_swap_datetime = swap_txs_df.loc[:, 'timeStamp'].max()
+
+        return datetime.datetime.fromtimestamp(last_swap_datetime)
+
