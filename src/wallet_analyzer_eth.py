@@ -810,3 +810,18 @@ class WalletAnalyzer:
 
         return len(swap_txs_df.index)
 
+    def traded_tokens_number(self, drop_snipes: bool = False, include_other_swap_types: bool = False,
+                             drop_in_out_tokens: bool = False) -> int:
+        """
+        How many tokens were traded in total
+        :param drop_snipes: whether to drop all transaction of tokens that have snipe transactions
+        :param include_other_swap_types: whether to include other swap types (other_buy, other_sell)
+        :param drop_in_out_tokens: whether to drop all transaction of tokens that have in/out transactions
+        :return: number of tokens traded in total
+        """
+        swap_txs_df = self.get_swap_txs(drop_snipes, include_other_swap_types, drop_in_out_tokens)
+
+        traded_tokens_number = swap_txs_df['tokenCa'].nunique()
+
+        return traded_tokens_number
+
