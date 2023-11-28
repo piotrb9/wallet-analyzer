@@ -862,7 +862,7 @@ class WalletAnalyzer:
         count_tokens_out = self.txs_df.loc[self.txs_df['txType'] == 'tokens_transfer_put', 'hash'].count()
 
         # Fees paid
-        self.txs_df['txFee'] = self.txs_df['gasPrice'] * self.txs_df['gasUsed']
+        self.txs_df['txFee'] = self.txs_df['gasPrice'] / 10 ** 18 * self.txs_df['gasUsed']
         total_fees_eth = self.txs_df.loc[
             (self.txs_df['swapType'] == 'swap_buy') | (self.txs_df['swapType'] == 'swap_sell'), 'txFee'].sum()
 
