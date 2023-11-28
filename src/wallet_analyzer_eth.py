@@ -825,3 +825,48 @@ class WalletAnalyzer:
 
         return traded_tokens_number
 
+    def calculate_total_values(self, drop_snipes: bool = False, drop_in_out_tokens: bool = False):
+        """
+        Calculate total in,out and buy,sell on DEX
+        :return: total_eth_in, total_eth_out, total_eth_buy, total_eth_sell
+        """
+        # Calculate total values
+        total_eth_out = self.txs_df.loc[self.txs_df['txType'] == 'eth_transfer_out', 'value'].sum()
+        total_eth_in = self.txs_df.loc[self.txs_df['txType'] == 'eth_transfer_in', 'value'].sum()
+        total_eth_internal_in = self.txs_df.loc[self.txs_df['txType'] == 'eth_other_transfer_in', 'value'].sum()
+
+        # Drop tokens that have outcoming and incoming transactions
+        if drop_in_out_tokens:
+            swap_txs_df = self.drop_in_out_tokens(self.txs_df)
+
+        else:
+            swap_txs_df = self.txs_df
+
+        # Drop snipes (every token that has at least 1 tx like that)
+        if drop_snipes:
+
+            swap_txs_df = self.drop_snipes(swap_txs_df)
+
+            total_eth_buy = swap_txs_df.loc[swap_txs_df['swapType'] == 'swap_buy', 'swapEth'].sum()
+            total_eth_sell = swap_txs_df.loc[swap_txs_df['swapType'] == 'swap_sell', 'swapEth'].sum()
+
+        else:
+
+            total_eth_buy = swap_txs_df.loc[swap_txs_df['swapType'] == 'swap_buy', 'swapEth'].sum()
+            total_eth_sell = swap_txs_df.loc[swap_txs_df['swapType'] == 'swap_sell', 'swapEth'].sum()
+
+        total_stablecoins_in = self.txs_df.loc[self.txs_df['txType'] == 'stablecoins_transfer_in', 'tokenValue'].sum()
+        total_stablecoins_out = self.txs_df.loc[self.txs_df['txType'] == 'stablecoins_transfer_out', 'tokenValue'].sum()
+
+        count_tokens_in = self.txs_df.loc[self.txs_df['txType'] == 'tokens_transfer_in', 'hash'].count()
+        count_tokens_out = self.txs_df.loc[self.txs_df['txType'] == 'tokens_transfer_put', 'hash'].count()
+
+        # Fees paid
+        self.txs_df['txFee'] = self.txs_df['gasPrice'] * self.txs_df['gasUsed']
+        total_fees_eth = self.txs_df.loc[
+            (self.txs_df['swapType'] == 'swap_buy') | (self.txs_df['swapType'] == 'swap_sell'), 'txFee'].sum()
+
+        return total_eth_in, total_eth_internal_in, total_eth_out, total_eth_buy, total_eth_sell, total_stablecoins_in,\
+            total_stablecoins_out, total_fees_eth, count_tokens_in, count_tokens_out
+
+
