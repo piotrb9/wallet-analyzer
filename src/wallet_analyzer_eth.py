@@ -869,4 +869,177 @@ class WalletAnalyzer:
         return total_eth_in, total_eth_internal_in, total_eth_out, total_eth_buy, total_eth_sell, total_stablecoins_in,\
             total_stablecoins_out, total_fees_eth, count_tokens_in, count_tokens_out
 
+    def calculate_rolling_ratings(self, drop_snipes: bool = False, include_other_swap_types: bool = False,
+                                  drop_in_out_tokens: bool = False) -> pd.DataFrame:
+        """
+        Calculates different types of ratings after every trade
+        :param drop_snipes: whether to drop all transaction of tokens that have snipe transactions
+        :param include_other_swap_types: whether to include other swap types (other_buy, other_sell)
+        :param drop_in_out_tokens: whether to drop all transaction of tokens that have in/out transactions
+        :return: dataframe with the ratings
+        """
+        assert self.txs_df is not None, 'Use self.get_data() first!'
+
+        swap_txs_df = self.get_swap_txs(drop_snipes, include_other_swap_types, drop_in_out_tokens)
+
+        swap_txs_df = swap_txs_df.sort_values(by='blockNumber', ascending=True)
+
+        swap_txs_df = swap_txs_df.reset_index(drop=True)
+
+        # Trades last 7d -----------------------------------------
+        def trades_last_7d(data_series):
+            # The current day in the expanding window
+            current_day = data_series.iloc[-1]
+
+            # Filter the trades in the last 7 days
+            last_7_days_trades = data_series[data_series >= (current_day - 7)]
+
+            return len(last_7_days_trades)
+
+        # Create a column 'days_since_start' representing the number of days since the earliest date (temporary col)
+        swap_txs_df['days_since_start'] = (swap_txs_df['dateTime'] - swap_txs_df['dateTime'].min()).dt.days
+
+        swap_txs_df['trades_last_7d'] = swap_txs_df['days_since_start'].expanding().apply(trades_last_7d)
+
+        swap_txs_df = swap_txs_df.drop(columns=['days_since_start'])
+
+        # Total traded tokens number ------------------------------
+        # Initialize an empty set to store unique tokens and a list to store cumulative counts
+        unique_tokens_seen = set()
+        cumulative_unique_tokens = []
+
+        # Iterate through the dataframe and calculate cumulative unique tokens
+        for token in swap_txs_df['tokenCa']:
+            unique_tokens_seen.add(token)
+            cumulative_unique_tokens.append(len(unique_tokens_seen))
+
+        # Add the cumulative counts to the dataframe
+        swap_txs_df['unique_tokens_traded_number'] = cumulative_unique_tokens
+
+        # Total swaps number --------------------------------------
+        swap_txs_df['total_swaps'] = range(1, len(swap_txs_df) + 1)
+
+        # total sells value/total buy value ---
+        swap_txs_df['buy_values'] = swap_txs_df['swapEth'].where(swap_txs_df['swapType'] == 'swap_buy', 0)
+        swap_txs_df['sell_values'] = swap_txs_df['swapEth'].where(swap_txs_df['swapType'] == 'swap_sell', 0)
+
+        # Calculate the cumulative sums for buys and sells separately
+        swap_txs_df['cumulative_buys'] = swap_txs_df['buy_values'].expanding().sum()
+        swap_txs_df['cumulative_sells'] = swap_txs_df['sell_values'].expanding().sum()
+
+        # Calculate total_sells_value/total_buys_value ratio
+        # To avoid division by zero add a small value (1e-10) to the denominator
+        swap_txs_df['sell_buy_ratio'] = swap_txs_df['cumulative_sells'] / (swap_txs_df['cumulative_buys'] + 1e-10)
+
+        # Win ratio -----------------------------------------------
+        # Calculate cumulative token buy and sell values
+        swap_txs_df['token_buy_values'] = swap_txs_df['tokenValue'].where(swap_txs_df['swapType'] == 'swap_buy', 0)
+        swap_txs_df['token_sell_values'] = swap_txs_df['tokenValue'].where(swap_txs_df['swapType'] == 'swap_sell', 0)
+        swap_txs_df['cumulative_token_buys'] = swap_txs_df.groupby('tokenCa')['token_buy_values'].cumsum()
+        swap_txs_df['cumulative_token_sells'] = swap_txs_df.groupby('tokenCa')['token_sell_values'].cumsum()
+
+        # Check if the wallet have sold more than 90% of the tokens already
+        swap_txs_df['sold_ratio'] = swap_txs_df['cumulative_token_sells'] / swap_txs_df['cumulative_token_buys']
+        swap_txs_df['sold_more_than_90p'] = swap_txs_df['sold_ratio'] >= 0.9
+
+        # For tokens with sold_more_than_90p check the ETH trading result
+        swap_txs_df['eth_buy_values'] = swap_txs_df['swapEth'].where(swap_txs_df['swapType'] == 'swap_buy', 0)
+        swap_txs_df['eth_sell_values'] = swap_txs_df['swapEth'].where(swap_txs_df['swapType'] == 'swap_sell', 0)
+        swap_txs_df['cumulative_eth_buys'] = swap_txs_df.groupby('tokenCa')['eth_buy_values'].cumsum()
+        swap_txs_df['cumulative_eth_sells'] = swap_txs_df.groupby('tokenCa')['eth_sell_values'].cumsum()
+
+        swap_txs_df['eth_trade_result'] = swap_txs_df['cumulative_eth_sells'] - swap_txs_df['cumulative_eth_buys']
+        swap_txs_df['eth_trade_result'] = np.where(swap_txs_df['sold_more_than_90p'] == True,
+                                                   swap_txs_df['eth_trade_result'], np.nan)
+
+        swap_txs_df['wins_number'] = swap_txs_df['eth_trade_result'] > 0
+        swap_txs_df['total_trades_number'] = swap_txs_df['eth_trade_result'].notnull()
+
+        swap_txs_df['wins_number_cumsum'] = swap_txs_df['wins_number'].cumsum()
+        swap_txs_df['total_trades_number_cumsum'] = swap_txs_df['total_trades_number'].cumsum()
+
+        swap_txs_df['win_ratio'] = swap_txs_df['wins_number_cumsum'] / swap_txs_df['total_trades_number_cumsum']
+
+        # MAs of win ratio
+        swap_txs_df['win_ratio_ma10'] = swap_txs_df['wins_number'].rolling(window=10, min_periods=1).sum() / \
+                                        swap_txs_df['total_trades_number'].rolling(window=10, min_periods=1).sum()
+
+        swap_txs_df['win_ratio_ma20'] = swap_txs_df['wins_number'].rolling(window=20, min_periods=1).sum() / \
+                                        swap_txs_df['total_trades_number'].rolling(window=20, min_periods=1).sum()
+
+        swap_txs_df['win_ratio_ma25'] = swap_txs_df['wins_number'].rolling(window=25, min_periods=1).sum() / \
+                                        swap_txs_df['total_trades_number'].rolling(window=25, min_periods=1).sum()
+
+        # MAs of trade result -------------------------------------------
+        swap_txs_df['eth_trade_result_ma10'] = swap_txs_df['eth_trade_result'].rolling(window=10, min_periods=1).mean()
+
+        swap_txs_df['eth_trade_result_ma20'] = swap_txs_df['eth_trade_result'].rolling(window=10, min_periods=1).mean()
+
+        swap_txs_df['eth_trade_result_ma15'] = swap_txs_df['eth_trade_result'].rolling(window=10, min_periods=1).mean()
+
+        # EXPANDING trade result -------------------------------------------
+        swap_txs_df['eth_trade_result_expanding'] = swap_txs_df['eth_trade_result'].expanding().mean()
+
+        # % of how many unique traded tokens have been already sold ------
+        def calculate_tokens_with_90p_sold_up_to_index(idx, df):
+            """
+            Calculate the number of unique tokens that have been sold more than 90% up to a given index
+            """
+            relevant_slice = df.iloc[:idx + 1]
+            tokens_sold_more_than_90p = relevant_slice[relevant_slice['sold_more_than_90p']]['tokenCa'].unique()
+            return len(tokens_sold_more_than_90p)
+
+        # Calculate the number of tokens with more than 90% sold for each row
+        tokens_with_90p_sold_counts = [calculate_tokens_with_90p_sold_up_to_index(i, swap_txs_df) for i in
+                                       range(len(swap_txs_df))]
+
+        swap_txs_df['total_number_of_tokens_with_more_than_90p_sold'] = tokens_with_90p_sold_counts
+
+        swap_txs_df['unique_tokens_already_sold_ratio'] = swap_txs_df[
+                                                              'total_number_of_tokens_with_more_than_90p_sold'] / \
+                                                          swap_txs_df['unique_tokens_traded_number']
+
+        # Buy order size ---------------------------------------------
+        swap_txs_df['buy_order_size'] = swap_txs_df['swapEth'].where(swap_txs_df['swapType'] == 'swap_buy', None)
+
+        # Calculate the MA10 for buy order sizes
+        swap_txs_df['buy_order_size_ma10'] = swap_txs_df['buy_order_size'].astype(float).rolling(window=10,
+                                                                                                 min_periods=1).mean()
+
+        # Buy order size EXPANDING AVERAGE --------------------------------
+        swap_txs_df['buy_order_size_expanding_avg'] = swap_txs_df['buy_order_size'].astype(float).expanding().mean()
+
+        # Eth trade result ma10 / buy order size ma10 ---------------------
+
+        swap_txs_df['eth_trade_result_ma10/buy_order_size_ma10'] = swap_txs_df['eth_trade_result_ma10'] / swap_txs_df[
+            'buy_order_size_ma10']
+
+        # (total sells value-total buys value)/(number of swaps/2) --------
+        swap_txs_df['profit_per_trade'] = (swap_txs_df['cumulative_sells'] - swap_txs_df['cumulative_buys']) / (
+                swap_txs_df['total_swaps'] / 2 + 1e-10)
+
+        # Fill na values in the columns with last record
+        selected_columns = swap_txs_df[[
+            "blockNumber",
+            "trades_last_7d",
+            "unique_tokens_traded_number",
+            "total_swaps",
+            "sell_buy_ratio",
+            "win_ratio",
+            "win_ratio_ma25",
+            "eth_trade_result_ma10",
+            "eth_trade_result_expanding",
+            "unique_tokens_already_sold_ratio",
+            "buy_order_size_ma10",
+            "buy_order_size_expanding_avg",
+            "eth_trade_result_ma10/buy_order_size_ma10",
+            "profit_per_trade"
+        ]]
+
+        selected_columns.fillna(method='ffill', inplace=True)
+
+        selected_columns.fillna(0, inplace=True)
+
+        return selected_columns
+
 
