@@ -960,22 +960,12 @@ class WalletAnalyzer:
 
         swap_txs_df['win_ratio'] = swap_txs_df['wins_number_cumsum'] / swap_txs_df['total_trades_number_cumsum']
 
-        # MAs of win ratio
-        swap_txs_df['win_ratio_ma10'] = swap_txs_df['wins_number'].rolling(window=10, min_periods=1).sum() / \
-                                        swap_txs_df['total_trades_number'].rolling(window=10, min_periods=1).sum()
-
-        swap_txs_df['win_ratio_ma20'] = swap_txs_df['wins_number'].rolling(window=20, min_periods=1).sum() / \
-                                        swap_txs_df['total_trades_number'].rolling(window=20, min_periods=1).sum()
-
+        # MA25 of win ratio
         swap_txs_df['win_ratio_ma25'] = swap_txs_df['wins_number'].rolling(window=25, min_periods=1).sum() / \
                                         swap_txs_df['total_trades_number'].rolling(window=25, min_periods=1).sum()
 
-        # MAs of trade result -------------------------------------------
+        # MA10 of trade result -------------------------------------------
         swap_txs_df['eth_trade_result_ma10'] = swap_txs_df['eth_trade_result'].rolling(window=10, min_periods=1).mean()
-
-        swap_txs_df['eth_trade_result_ma20'] = swap_txs_df['eth_trade_result'].rolling(window=10, min_periods=1).mean()
-
-        swap_txs_df['eth_trade_result_ma15'] = swap_txs_df['eth_trade_result'].rolling(window=10, min_periods=1).mean()
 
         # EXPANDING trade result -------------------------------------------
         swap_txs_df['eth_trade_result_expanding'] = swap_txs_df['eth_trade_result'].expanding().mean()
