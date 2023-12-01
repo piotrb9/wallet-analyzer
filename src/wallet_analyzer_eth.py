@@ -488,7 +488,7 @@ class WalletAnalyzer:
             self.txs_df.loc[(self.txs_df['txType'] == 'other') & (self.txs_df['from'] == self.wallet) & (
                     self.txs_df['value'] == 0), 'txType'] = 'tokens_transfer_out'
 
-            tokens_transfer_out_df = self.txs_df.loc[self.txs_df['txType'] == 'tokens_transfer_out']
+            tokens_transfer_out_df = self.txs_df.loc[self.txs_df['txType'] == 'tokens_transfer_out'].copy()
 
             tokens_transfer_out_df.loc[:, ['swapType', 'swapEth', 'tokenValue', 'tokenName', 'tokenSymbol', 'tokenCa',
                                            'tokenDecimal']] = tokens_transfer_out_df.apply(
