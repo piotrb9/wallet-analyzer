@@ -181,6 +181,10 @@ class Dashboard:
                                    title=pie_chart_filter)
                 st.write(pie_chart)
 
+            st.divider()
+            st.markdown("### Trades detailed view")
+            st.dataframe(self.wallet_analyzer.token_trades)
+
 
 if __name__ == "__main__":
     dashboard = Dashboard("0x7e5e597c3005037246f9efdb61f79d193d1d546c")
