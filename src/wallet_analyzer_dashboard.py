@@ -162,6 +162,25 @@ class Dashboard:
             st.markdown("### Transactions detailed view")
             st.dataframe(transactions_df)
 
+            histogram_col, pie_chart_col = st.columns(2)
+
+            with histogram_col:
+                st.markdown("### Histogram")
+                histogram_filter = st.selectbox("Select the column", transactions_df.columns.values.tolist(), index=8)
+
+                histogram = px.histogram(transactions_df, x=histogram_filter, title=histogram_filter)
+                st.write(histogram)
+
+            with pie_chart_col:
+                st.markdown("### Pie chart")
+                pie_chart_filter = st.selectbox("Select the column", transactions_df.columns.values.tolist(), index=6)
+
+                pie_chart_values = transactions_df.loc[:, pie_chart_filter].value_counts()
+
+                pie_chart = px.pie(pie_chart_values, values=pie_chart_values.values, names=pie_chart_values.index,
+                                   title=pie_chart_filter)
+                st.write(pie_chart)
+
 
 if __name__ == "__main__":
     dashboard = Dashboard("0x7e5e597c3005037246f9efdb61f79d193d1d546c")
