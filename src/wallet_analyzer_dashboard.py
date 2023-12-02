@@ -39,6 +39,9 @@ class Dashboard:
             layout="wide",
         )
 
+        st.markdown("### Wallet address")
+        self.wallet_address = st.text_input("Enter the wallet address", self.wallet_address)
+
         # Data
         self.get_wallet_data(self.wallet_address)
         total_eth_in, total_eth_internal_in, total_eth_out, total_eth_buy, total_eth_sell, total_stablecoins_in,\
