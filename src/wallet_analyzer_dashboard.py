@@ -159,6 +159,9 @@ class Dashboard:
                                labels={'hash': 'number of trades'},)
                 st.write(fig20)
 
+            st.markdown("### Transactions detailed view")
+            st.dataframe(transactions_df)
+
 
 if __name__ == "__main__":
     dashboard = Dashboard("0x7e5e597c3005037246f9efdb61f79d193d1d546c")
