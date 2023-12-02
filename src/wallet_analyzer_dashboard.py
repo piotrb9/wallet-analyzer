@@ -60,22 +60,22 @@ class Dashboard:
 
             kpi10.metric(
                 label="Final trade result (only buy+sell txs)",
-                value=f"{final_trade_result} ETH"
+                value=f"{round(final_trade_result, 3)} ETH"
             )
 
             kpi20.metric(
                 label="Snipes percent",
-                value=f"{snipes_percent}%",
+                value=f"{round(snipes_percent, 2)}%",
             )
 
             kpi30.metric(
                 label="Average buy order size",
-                value=f"{avg_trade_size} ETH"
+                value=f"{round(avg_trade_size, 3)} ETH"
             )
 
             kpi40.metric(
                 label="Average trade result",
-                value=f"{avg_trade_result} ETH"
+                value=f"{round(avg_trade_result, 3)} ETH"
             )
 
             st.markdown("### In/out transactions")
@@ -83,23 +83,23 @@ class Dashboard:
 
             kpi11.metric(
                 label="ETH in (tx+internal)",
-                value=f"{total_eth_in} ETH",
-                delta=f"+ {total_eth_internal_in} ETH internal"
+                value=f"{round(total_eth_in, 3)} ETH",
+                delta=f"+ {round(total_eth_internal_in, 3)} ETH internal"
             )
 
             kpi21.metric(
                 label="ETH out",
-                value=f"{total_eth_out} ETH"
+                value=f"{round(total_eth_out, 3)} ETH"
             )
 
             kpi31.metric(
                 label="Stablecoins in",
-                value=f"{total_stablecoins_in} $"
+                value=f"{round(total_stablecoins_in, 2)} $"
             )
 
             kpi41.metric(
                 label="Stablecoins out",
-                value=f"{total_stablecoins_out} $"
+                value=f"{round(total_stablecoins_out, 2)} $"
             )
 
             st.markdown("### Trading metrics")
@@ -107,23 +107,23 @@ class Dashboard:
 
             kpi12.metric(
                 label="Total buys value (excl. snipes and tokens flow)",
-                value=f"{total_eth_buy} ETH",
-                delta=f"{total_eth_sell - total_eth_buy} ETH trading result"
+                value=f"{round(total_eth_buy, 3)} ETH",
+                delta=f"{round(total_eth_sell - total_eth_buy, 3)} ETH trading result"
             )
 
             kpi22.metric(
                 label="Total sells value (excl. snipes and tokens flow)",
-                value=f"{total_eth_sell} ETH"
+                value=f"{round(total_eth_sell, 3)} ETH"
             )
 
             kpi32.metric(
                 label="Token txs in",
-                value=f"{count_tokens_in}"
+                value=f"{round(count_tokens_in, 0)}"
             )
 
             kpi42.metric(
                 label="Token txs out",
-                value=f"{count_tokens_out}"
+                value=f"{round(count_tokens_out, 0)}"
             )
 
 
