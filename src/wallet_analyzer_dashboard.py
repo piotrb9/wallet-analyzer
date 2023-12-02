@@ -53,8 +53,16 @@ class Dashboard:
         avg_trade_size = self.wallet_analyzer.avg_trade_size()
         avg_trade_result = self.wallet_analyzer.avg_trade_result()
 
+        # Charts
+        trades_per_day_df = self.wallet_analyzer.trades_per_day(True, False, True)
+        cum_res_df = self.wallet_analyzer.cumulated_daily_trading_result(True, False, True)
+
+        # Dataframes
         transactions_df = self.wallet_analyzer.txs_df
         transactions_df['dateTime'] = pd.to_datetime(transactions_df.loc[:, 'timeStamp'], unit='s')
+        transactions_df = transactions_df.loc[:, ['dateTime', 'hash', 'from', 'to', 'value', 'gasPrice', 'txType',
+                                                  'swapType', 'swapEth', 'tokenValue', 'tokenName', 'tokenSymbol',
+                                                  'tokenCa', 'snipe', 'txFee']]
 
         placeholder = st.empty()
 
@@ -128,6 +136,28 @@ class Dashboard:
                 label="Token txs out",
                 value=f"{round(count_tokens_out, 0)}"
             )
+
+            st.divider()
+
+            # Create two columns for charts
+            fig_col10, fig_col20 = st.columns(2)
+            with fig_col10:
+                st.markdown("### Cumulative trading result by trade")
+                fig10 = px.line(
+                    data_frame=cum_res_df, y=cum_res_df["cumResult"], x=cum_res_df.index
+                )
+                fig10.add_scatter(y=cum_res_df["cumBuy"], x=cum_res_df.index, mode='lines', fillcolor='green',
+                                  name="Buy")
+                fig10.add_scatter(y=cum_res_df["cumSell"], x=cum_res_df.index, mode='lines', fillcolor='red',
+                                  name="Sell")
+                st.write(fig10)
+
+            with fig_col20:
+                st.markdown("### Daily trades")
+                # print(trades_per_day_df)
+                fig20 = px.bar(data_frame=trades_per_day_df, x="date", y='trades_number',
+                               labels={'hash': 'number of trades'},)
+                st.write(fig20)
 
 
 if __name__ == "__main__":
