@@ -185,6 +185,21 @@ class Dashboard:
             st.markdown("### Trades detailed view")
             st.dataframe(self.wallet_analyzer.token_trades)
 
+            current_location = os.path.dirname(os.path.realpath(__file__))
+            save_files_location = os.path.join(current_location, "saved_files")
+
+            if st.button('Save trades (table above) to CSV'):
+                self.wallet_analyzer.token_trades.to_csv(os.path.join(save_files_location,
+                                                                      f"{self.wallet_address}_trades.csv"))
+
+                st.write(f'Saved the data to a file: {self.wallet_address}_trades.csv')
+
+            if st.button('Save all swap txs to CSV'):
+                self.wallet_analyzer.get_swap_txs().to_csv(os.path.join(save_files_location,
+                                                                        f"{self.wallet_address}_swap_txs.csv"))
+
+                st.write(f'Saved the data to a file: {self.wallet_address}_swap_txs.csv')
+
 
 if __name__ == "__main__":
     dashboard = Dashboard("0x7e5e597c3005037246f9efdb61f79d193d1d546c")
