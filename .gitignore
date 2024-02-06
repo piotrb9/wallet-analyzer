@@ -1,5 +1,5 @@
 /src/data/api_keys.ini
-/src/cache/
+/src/cache/cache.sqlite
 /.idea/
 *.xml
 *.iml
