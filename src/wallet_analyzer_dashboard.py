@@ -1,8 +1,9 @@
 """Simple traders dashboard with Streamlit"""
-import os
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+from io import StringIO
+import base64
 from wallet_analyzer_eth import WalletAnalyzer
 
 
@@ -154,7 +155,6 @@ class Dashboard:
 
             with fig_col20:
                 st.markdown("### Daily trades")
-                # print(trades_per_day_df)
                 fig20 = px.bar(data_frame=trades_per_day_df, x="date", y='trades_number',
                                labels={'hash': 'number of trades'},)
                 st.write(fig20)
@@ -185,21 +185,34 @@ class Dashboard:
             st.markdown("### Trades detailed view")
             st.dataframe(self.wallet_analyzer.token_trades)
 
-            current_location = os.path.dirname(os.path.realpath(__file__))
-            save_files_location = os.path.join(current_location, "saved_files")
+            def to_csv(df):
+                # Convert DataFrame to a CSV string
+                output = StringIO()
+                df.to_csv(output, index=False)
+
+                # Set the StringIO object to the beginning
+                output.seek(0)
+                return output.getvalue()
+
+            def create_download_link(df, filename):
+                csv = to_csv(df)
+
+                # Encode CSV string
+                b64 = base64.b64encode(csv.encode()).decode()
+                href = f'<a href="data:file/csv;base64,{b64}" download="{filename}">Download CSV File</a>'
+                return href
 
             if st.button('Save trades (table above) to CSV'):
-                self.wallet_analyzer.token_trades.to_csv(os.path.join(save_files_location,
-                                                                      f"{self.wallet_address}_trades.csv"))
-
                 st.write(f'Saved the data to a file: {self.wallet_address}_trades.csv')
 
-            if st.button('Save all swap txs to CSV'):
-                self.wallet_analyzer.get_swap_txs().to_csv(os.path.join(save_files_location,
-                                                                        f"{self.wallet_address}_swap_txs.csv"),
-                                                           index=False)
+                st.markdown(create_download_link(self.wallet_analyzer.token_trades, f"{self.wallet_address}_trades.csv"),
+                            unsafe_allow_html=True)
 
+            if st.button('Save all swap txs to CSV'):
                 st.write(f'Saved the data to a file: {self.wallet_address}_swap_txs.csv')
+
+                st.markdown(create_download_link(self.wallet_analyzer.get_swap_txs(),
+                                                 f"{self.wallet_address}_swap_txs.csv"), unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
