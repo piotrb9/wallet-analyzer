@@ -196,7 +196,8 @@ class Dashboard:
 
             if st.button('Save all swap txs to CSV'):
                 self.wallet_analyzer.get_swap_txs().to_csv(os.path.join(save_files_location,
-                                                                        f"{self.wallet_address}_swap_txs.csv"))
+                                                                        f"{self.wallet_address}_swap_txs.csv"),
+                                                           index=False)
 
                 st.write(f'Saved the data to a file: {self.wallet_address}_swap_txs.csv')
 
