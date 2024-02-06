@@ -1,13 +1,10 @@
 """Download wallet txs history using bscscan or etherscan api
 Use cache to avoid api rate limit (cache expires after 3 hours)"""
-import configparser
+import os
 import requests
 import requests_cache
 
-api_config = configparser.ConfigParser()
-api_config.read('data/api_keys.ini')
-
-etherscan_api_key = api_config.get('api', 'etherscan_api_key')
+etherscan_api_key = os.environ.get('etherscan_api_key')
 
 requests_cache.install_cache('cache/cache', backend='sqlite', expire_after=60 * 60 * 3)
 
