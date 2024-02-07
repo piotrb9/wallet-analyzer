@@ -4,15 +4,15 @@ Interactive dashboard made with Streamlit to help you check Ethereum wallets bas
 
 You can get some random wallets from: [Birdeye.so](https://birdeye.so/leaderboard/7D?chain=ethereum)
 
+## Live demo
+[Live dashboard uploaded to the Streamlit cloud](https://wallet-analyzer-portfolio.streamlit.app/)
+
 ## Preview
 ![image](https://github.com/piotrb9/wallet-analyzer/assets/157641773/2f53e7b1-44ec-4966-82a1-2afaacb2d864)
 ![image](https://github.com/piotrb9/wallet-analyzer/assets/157641773/647c1ebd-cc0e-4952-a9b2-2a272a868b70)
 ![image](https://github.com/piotrb9/wallet-analyzer/assets/157641773/1b12587a-23d4-4ee7-8658-0485bdb0fc07)
 ![image](https://github.com/piotrb9/wallet-analyzer/assets/157641773/148476c8-f162-4098-9e8f-e37d1ca945fd)
 ![image](https://github.com/piotrb9/wallet-analyzer/assets/157641773/d14f6f79-745d-4e95-9cda-73ed1fd3d835)
-
-## Live demo
-[Live dashboard uploaded to the Streamlit cloud](https://wallet-analyzer-portfolio.streamlit.app/)
 
 ## Installation
 
