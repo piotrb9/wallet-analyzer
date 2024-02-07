@@ -214,6 +214,8 @@ class Dashboard:
                 st.markdown(create_download_link(self.wallet_analyzer.get_swap_txs(),
                                                  f"{self.wallet_address}_swap_txs.csv"), unsafe_allow_html=True)
 
+            st.markdown("Powered by Etherscan.io APIs")
+
 
 if __name__ == "__main__":
     dashboard = Dashboard("0x7e5e597c3005037246f9efdb61f79d193d1d546c")
