@@ -15,6 +15,13 @@ You can get some random wallets from: [Birdeye.so](https://birdeye.so/leaderboar
 ![image](https://github.com/piotrb9/wallet-analyzer/assets/157641773/d14f6f79-745d-4e95-9cda-73ed1fd3d835)
 
 ## Installation
+Get etherscan.io API key from: https://docs.etherscan.io/getting-started/viewing-api-usage-statistics
+
+Set env variable with your api key:
+```bash
+export etherscan_api_key="YOUR API KEY"
+```
+
 
 Install the requirements
 ```bash
