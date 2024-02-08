@@ -2,10 +2,19 @@
 
 Interactive dashboard made with Streamlit to help you check Ethereum wallets based on their trading statistics. You only need the wallet address!
 
-You can get some random wallets from: [Birdeye.so](https://birdeye.so/leaderboard/7D?chain=ethereum)
+**IMPORTANT!**
+The script does not support swaps with stablecoins or wrapped ether yet. These transactions will be considered as token transfers or the panel will crash if the analyzed wallet does not use ETH for swaps.
 
 ## Live demo
 [Live dashboard uploaded to the Streamlit cloud](https://wallet-analyzer-portfolio.streamlit.app/)
+
+Example wallets you can check (data on the blockchain is public so I leave it here):
+
+- 0xdEcfCe6476A66BF8Cb1a9f3005ce5496363A99de
+- 0x7e5e597c3005037246f9efdb61f79d193d1d546c
+- 0x2679f66a2ba7C4C0D72b128f2B9E470E5eAe53F7
+- 0x28C79b441c460D33a2751652D8793566860aB666
+- 0x2679f66a2ba7C4C0D72b128f2B9E470E5eAe53F7
 
 ## Preview
 ![image](https://github.com/piotrb9/wallet-analyzer/assets/157641773/2f53e7b1-44ec-4966-82a1-2afaacb2d864)
@@ -52,6 +61,9 @@ to discuss what you would like to change.
 
 ## TODO
 Read the [TODO](https://github.com/piotrb9/wallet-analyzer/blob/master/TODO.md) to see the list.
+
+*DISCLAIMER**
+For educational purposes only
 
 ## License
 
