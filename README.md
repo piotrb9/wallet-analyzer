@@ -50,6 +50,9 @@ All features are described in the panel when you hover them. You only have to wr
 Pull requests are welcome. For major changes, please open an issue first
 to discuss what you would like to change.
 
+## TODO
+Read the [TODO](https://github.com/piotrb9/wallet-analyzer/blob/master/TODO.md) to see the list.
+
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
