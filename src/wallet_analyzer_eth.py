@@ -13,6 +13,7 @@ class WalletAnalyzer:
         Analyzes wallet transactions
         :param wallet: wallet address
         """
+        self.weth_address = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'
         self.wallet = wallet.lower()
         self.chain = chain
 
@@ -186,6 +187,26 @@ class WalletAnalyzer:
         self.txs_df = txs_df
         self.token_txs_df = token_txs_df
         self.internal_txs_df = internal_txs_df
+
+    def move_weth_transactions(self) -> None:
+        """
+        Move WETH transactions from token_txs_df to the txs_df
+        :return: None
+        """
+        weth_txs = self.token_txs_df.loc[self.token_txs_df['contractAddress'] == self.weth_address]
+
+        # Delete WETH transactions from token_txs_df
+        self.token_txs_df = self.token_txs_df.loc[~self.token_txs_df['hash'].isin(weth_txs['hash'])]
+
+        # For every WETH transaction, change the 'value' and 'txType' in the txs_df - locate the transaction by hash
+        for index, row in weth_txs.iterrows():
+            self.txs_df.loc[self.txs_df['hash'] == row['hash'], 'value'] = row['value']
+
+            if row['from'] == self.wallet:
+                self.txs_df.loc[self.txs_df['hash'] == row['hash'], 'txType'] = 'swap_tx_nonzero_value'
+
+            else:
+                self.txs_df.loc[self.txs_df['hash'] == row['hash'], 'txType'] = 'swap_tx_zero_value'
 
     def change_decimal(self, value: str, decimal: int, crop: int = 1) -> float:
         """
