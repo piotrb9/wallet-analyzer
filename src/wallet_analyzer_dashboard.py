@@ -72,12 +72,16 @@ class Dashboard:
 
             kpi10.metric(
                 label="Final trade result (only buy+sell txs)",
-                value=f"{round(final_trade_result, 3)} ETH"
+                value=f"{round(final_trade_result, 3)} ETH",
+                help="Final trade result based on the trades detailed view dataframe (below), only for tokens that "
+                     "have both buy and sell txs, so tokens that are not sold yet are not included in this metric."
             )
 
             kpi20.metric(
                 label="Snipes percent",
                 value=f"{round(snipes_percent, 2)}%",
+                help="Snipes are transactions with a very high gas price. They are usually frontrunners or bots trying "
+                     "to buy the token ASAP, just after the launch to book a low price."
             )
 
             kpi30.metric(
@@ -87,7 +91,9 @@ class Dashboard:
 
             kpi40.metric(
                 label="Average trade result",
-                value=f"{round(avg_trade_result, 3)} ETH"
+                value=f"{round(avg_trade_result, 3)} ETH",
+                help="How big is the average result of a trade. Only for tokens that have both buy&sell transactions. "
+                     "Values are positive for profitable wallets."
             )
 
             st.markdown("### In/out transactions")
@@ -96,7 +102,8 @@ class Dashboard:
             kpi11.metric(
                 label="ETH in (tx+internal)",
                 value=f"{round(total_eth_in, 3)} ETH",
-                delta=f"+ {round(total_eth_internal_in, 3)} ETH internal"
+                delta=f"+ {round(total_eth_internal_in, 3)} ETH internal",
+                help="Internal transactions are counted separately to avoid double counting"
             )
 
             kpi21.metric(
@@ -120,7 +127,9 @@ class Dashboard:
             kpi12.metric(
                 label="Total buys value (excl. snipes and tokens flow)",
                 value=f"{round(total_eth_buy, 3)} ETH",
-                delta=f"{round(total_eth_sell - total_eth_buy, 3)} ETH trading result"
+                delta=f"{round(total_eth_sell - total_eth_buy, 3)} ETH trading result",
+                help="Trading result is the difference between total sells and total buys. Tokens that have at least 1 "
+                     "snipe or in/out transaction are not included in this metric."
             )
 
             kpi22.metric(
@@ -130,7 +139,8 @@ class Dashboard:
 
             kpi32.metric(
                 label="Token txs in",
-                value=f"{round(count_tokens_in, 0)}"
+                value=f"{round(count_tokens_in, 0)}",
+                help="Number of transactions where the wallet is the recipient of the token"
             )
 
             kpi42.metric(
@@ -182,7 +192,9 @@ class Dashboard:
                 st.write(pie_chart)
 
             st.divider()
-            st.markdown("### Trades detailed view")
+            st.markdown("### Trades detailed view", help="This table contains all the trades grouped by token "
+                                                         "(separately for buy and sell txs). Some of the tokens may "
+                                                         "have not been sold yet, so they are not included.")
             st.dataframe(self.wallet_analyzer.token_trades)
 
             def to_csv(df):
@@ -218,5 +230,5 @@ class Dashboard:
 
 
 if __name__ == "__main__":
-    dashboard = Dashboard("0x7e5e597c3005037246f9efdb61f79d193d1d546c")
+    dashboard = Dashboard("0x28C79b441c460D33a2751652D8793566860aB666")
     dashboard.main()
