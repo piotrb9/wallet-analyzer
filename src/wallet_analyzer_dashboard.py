@@ -113,7 +113,9 @@ class Dashboard:
 
             kpi31.metric(
                 label="Stablecoins in",
-                value=f"{round(total_stablecoins_in, 2)} $"
+                value=f"{round(total_stablecoins_in, 2)} $",
+                help="Total value of stablecoins that were sent to the wallet. Stablecoins are tokens with "
+                     "a value of 1$."
             )
 
             kpi41.metric(
@@ -153,7 +155,9 @@ class Dashboard:
             # Create two columns for charts
             fig_col10, fig_col20 = st.columns(2)
             with fig_col10:
-                st.markdown("### Cumulative trading result by trade")
+                st.markdown("### Cumulative trading result by trade", help="This chart shows the cumulative trading "
+                                                                           "result by trade. It is useful to see the "
+                                                                           "evolution of the trading result over time.")
                 fig10 = px.line(
                     data_frame=cum_res_df, y=cum_res_df["cumResult"], x=cum_res_df.index
                 )
@@ -169,7 +173,7 @@ class Dashboard:
                                labels={'hash': 'number of trades'},)
                 st.write(fig20)
 
-            st.markdown("### Transactions detailed view")
+            st.markdown("### Transactions detailed view", help="All the transactions for the wallet.")
             st.dataframe(transactions_df)
 
             histogram_col, pie_chart_col = st.columns(2)
