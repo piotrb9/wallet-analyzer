@@ -20,7 +20,10 @@ class WalletAnalyzer:
         self.token_txs_df = None
         self.internal_txs_df = None
 
-        with open('data/contracts.yaml', 'r') as file:
+        # Load the YAML file with os to make it work in the streamlit cloud
+        current_location = os.path.dirname(os.path.realpath(__file__))
+        yaml_file = os.path.join(current_location, 'data/contracts.yaml')
+        with open(yaml_file, 'r') as file:
             config = yaml.safe_load(file)
 
         self.weth_address = config['eth']['weth'].lower()
