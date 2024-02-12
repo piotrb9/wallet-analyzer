@@ -1,10 +1,10 @@
 """Analysis of a ETH wallet"""
 import datetime
 import os
-
 from download_wallet_txs import get_txs, get_token_txs, get_internal_txs
 import pandas as pd
 import numpy as np
+import configparser
 
 
 class WalletAnalyzer:
@@ -13,7 +13,6 @@ class WalletAnalyzer:
         Analyzes wallet transactions
         :param wallet: wallet address
         """
-        self.weth_address = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'
         self.wallet = wallet.lower()
         self.chain = chain
 
@@ -21,66 +20,36 @@ class WalletAnalyzer:
         self.token_txs_df = None
         self.internal_txs_df = None
 
+        config = configparser.ConfigParser()
+
+        # Read the contracts.ini file
+        config.read('data/contracts.ini')
+
+        self.weth_address = config['eth']['weth'].lower()
+
         if self.chain == 'eth':
-            uniswap_universal_router_address = '0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD'.lower()
+            routers_str = config['eth']['routers']
+            stablecoins_str = config['eth']['stablecoins']
 
-            uniswap_old_universal_router = '0xEf1c6E67703c7BD7107eed8303Fbe6EC2554BF6B'.lower()
-            uniswap_v2_router_2_address = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'.lower()
-            uniswap_v3_router_2_address = '0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45'.lower()
-            sushiswap_router_address = '0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F'.lower()
-            inch_v5_aggregation_router_address = '0x1111111254EEB25477B68fb85Ed929f73A960582'.lower()
-            metamask_swap_router = '0x881D40237659C251811CEC9c364ef91dC08D300C'.lower()
-            kyberswap_meta_aggregation_router_v2 = '0x6131B5fae19EA4f9D964eAc0408E4408b66337b5'.lower()
-            rainbow_router = '0x00000000009726632680FB29d3F7A9734E3010E2'.lower()
-
-            self.routers = [uniswap_v2_router_2_address, uniswap_v3_router_2_address, sushiswap_router_address,
-                            uniswap_old_universal_router, inch_v5_aggregation_router_address, metamask_swap_router,
-                            kyberswap_meta_aggregation_router_v2, rainbow_router, uniswap_universal_router_address]
+            # Load routers from the file
+            self.routers = [s.strip() for s in routers_str.split(',')]
 
             # Source: https://ethplorer.io/tag/stablecoins#
-            self.stablecoins = ["0xdac17f958d2ee523a2206206994597c13d831ec7",
-                                "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-                                "0x6b175474e89094c44da98b954eedeac495271d0f",
-                                "0x8e870d67f660d95d5be530380d0ec0bd388289e1",
-                                "0x4fabb145d64652a948d72533023f6e7a623c7c53",
-                                "0x0000000000085d4780b73119b644ae5ecd22b376",
-                                "0xa47c8bf37f92abed4a126bda807a7b7498661acd",
-                                "0x853d955acef822db058eb8505911ed77f175b99e",
-                                "0x056fd409e1d7a124bd7017459dfea2f387b6d5cd",
-                                "0x57ab1ec28d129707052df4df418d58a2d46d5f51"]
+            self.stablecoins = [s.strip() for s in stablecoins_str.split(',')]
 
         # For the implementation of the BSC chain
         elif self.chain == 'bsc':
-            pancakeswap_v2_universal_router = '0x10ED43C718714eb63d5aA57B78B54704E256024E'.lower()
-            pancakeswap_v3_universal_router = '0x13f4EA83D0bd40E75C8222255bc855a974568Dd4'.lower()
-            kyberswap_meta_aggregation_router_v2 = '0x6131B5fae19EA4f9D964eAc0408E4408b66337b5'.lower()
-            metamask_swap_router = '0x1a1ec25DC08e98e5E93F1104B5e5cdD298707d31'.lower()
-            rainbow_router = '0x00000000009726632680FB29d3F7A9734E3010E2'.lower()
-            apeswap_router = '0xC0788A3aD43d79aa53B09c2EaCc313A787d1d607'.lower()
-            bakeryswap_router = '0xCDe540d7eAFE93aC5fE6233Bee57E1270D3E330F'.lower()
-            beltfinance_router = '0x9cb73F20164e399958261c289Eb5F9846f4D1404'.lower()
-            burger_swap_router = '0x58F876857a02D6762E0101bb5C46A8c1ED44Dc16'.lower()
-            cafeswap_router = '0x933DAea3a5995Fb94b14A7696a5F3ffD7B1E385A'.lower()
-            cakedefi_router = '0x0ED7e52944161450477ee417DE9Cd3a859b14fD0'.lower()
-            crowfinance_router = '0x3e9c2ee838072b370567efc2df27602d776b341c'.lower()
-            dopple_router = '0x029f944cd3afa7c229122b19c706d8f9c6bcc963'.lower()
-            ellipsis_router = '0x160CAed03795365F3A589f10C379FfA7d75d4E76'.lower()
-            sushiswap_router_address = '0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506'.lower()
+            routers_str = config['bsc']['routers']
+            stablecoins_str = config['bsc']['stablecoins']
 
-            self.routers = [pancakeswap_v2_universal_router, pancakeswap_v3_universal_router, rainbow_router,
-                            apeswap_router, bakeryswap_router, beltfinance_router, burger_swap_router, cafeswap_router,
-                            cakedefi_router, crowfinance_router, dopple_router, ellipsis_router,
-                            sushiswap_router_address, kyberswap_meta_aggregation_router_v2, metamask_swap_router]
+            # Load routers from the file
+            self.routers = [s.strip() for s in routers_str.split(',')]
 
-            self.stablecoins = ["0xe9e7cea3dedca5984780bafc599bd69add087d56",
-                                "0x55d398326f99059ff775485246999027b3197955",
-                                "0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3",
-                                "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
-                                "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
-                                "0x55d398326f99059ff775485246999027b3197955",
-                                "0x23396cf899ca06c4472205fc903bdb4de249d6fc",
-                                "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
-                                "0x55d398326f99059fF775485246999027B3197955"]
+            self.stablecoins = [s.strip() for s in stablecoins_str.split(',')]
+
+        # Make the lists lowercase for easy comparison
+        self.routers = [router.lower() for router in self.routers]
+        self.stablecoins = [stablecoin.lower() for stablecoin in self.stablecoins]
 
     def get_data(self, startblock=0):
         """
