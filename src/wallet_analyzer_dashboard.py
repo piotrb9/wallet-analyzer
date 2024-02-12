@@ -5,13 +5,18 @@ import streamlit as st
 from io import StringIO
 import base64
 from wallet_analyzer_eth import WalletAnalyzer
+from wallet_analyzer_eth import MetricsCalculator
 
 
 class Dashboard:
-    def __init__(self, wallet_address: str):
+    def __init__(self, initial_wallet_address: str):
+        self.txs_df = None
+        self.swap_txs_df = None
+        self.token_trades_df = None
         self.tokens_txs_df = None
         self.wallet_analyzer = None
-        self.wallet_address = wallet_address
+        self.metrics_calculator = None
+        self.wallet_address = initial_wallet_address
 
     def get_wallet_data(self, wallet_address: str) -> None:
         """
@@ -25,9 +30,14 @@ class Dashboard:
         wallet_analyzer.check_token_transfers()
         wallet_analyzer.check_internal_transfers()
         wallet_analyzer.check_snipers()
-        wallet_analyzer.calculate_tokens_txs(drop_snipes=True, drop_in_out_tokens=True)
 
         self.wallet_analyzer = wallet_analyzer
+
+        self.swap_txs_df = wallet_analyzer.get_swap_txs()
+        self.txs_df = wallet_analyzer.txs_df
+        self.token_trades_df = wallet_analyzer.calculate_tokens_txs()
+
+        self.metrics_calculator = MetricsCalculator(self.swap_txs_df, self.txs_df, self.token_trades_df)
 
     def main(self) -> None:
         """
@@ -47,19 +57,19 @@ class Dashboard:
         self.get_wallet_data(self.wallet_address)
         total_eth_in, total_eth_internal_in, total_eth_out, total_eth_buy, total_eth_sell, total_stablecoins_in,\
             total_stablecoins_out, total_fees_eth, count_tokens_in,\
-            count_tokens_out = self.wallet_analyzer.calculate_total_values(drop_snipes=True, drop_in_out_tokens=True)
+            count_tokens_out = self.metrics_calculator.calculate_total_values()
 
-        final_trade_result = self.wallet_analyzer.final_trade_result()
-        snipes_percent = self.wallet_analyzer.snipes_percent()
-        avg_trade_size = self.wallet_analyzer.avg_trade_size()
-        avg_trade_result = self.wallet_analyzer.avg_trade_result()
+        final_trade_result = self.metrics_calculator.final_trade_result()
+        snipes_percent = self.metrics_calculator.snipes_percent()
+        avg_trade_size = self.metrics_calculator.avg_trade_size()
+        avg_trade_result = self.metrics_calculator.avg_trade_result()
 
         # Charts
-        trades_per_day_df = self.wallet_analyzer.trades_per_day(True, False, True)
-        cum_res_df = self.wallet_analyzer.cumulated_daily_trading_result(True, False, True)
+        trades_per_day_df = self.metrics_calculator.trades_per_day()
+        cum_res_df = self.metrics_calculator.cumulated_daily_trading_result()
 
         # Dataframes
-        transactions_df = self.wallet_analyzer.txs_df
+        transactions_df = self.txs_df.copy()
         transactions_df['dateTime'] = pd.to_datetime(transactions_df.loc[:, 'timeStamp'], unit='s')
         transactions_df = transactions_df.loc[:, ['dateTime', 'hash', 'from', 'to', 'value', 'gasPrice', 'txType',
                                                   'swapType', 'swapEth', 'tokenValue', 'tokenName', 'tokenSymbol',
@@ -199,7 +209,7 @@ class Dashboard:
             st.markdown("### Trades detailed view", help="This table contains all the trades grouped by token "
                                                          "(separately for buy and sell txs). Some of the tokens may "
                                                          "have not been sold yet, so they are not included.")
-            st.dataframe(self.wallet_analyzer.token_trades)
+            st.dataframe(self.token_trades_df)
 
             def to_csv(df):
                 # Convert DataFrame to a CSV string
@@ -221,13 +231,13 @@ class Dashboard:
             if st.button('Save trades (table above) to CSV'):
                 st.write(f'Saved the data to a file: {self.wallet_address}_trades.csv')
 
-                st.markdown(create_download_link(self.wallet_analyzer.token_trades, f"{self.wallet_address}_trades.csv"),
+                st.markdown(create_download_link(self.token_trades_df, f"{self.wallet_address}_trades.csv"),
                             unsafe_allow_html=True)
 
             if st.button('Save all swap txs to CSV'):
                 st.write(f'Saved the data to a file: {self.wallet_address}_swap_txs.csv')
 
-                st.markdown(create_download_link(self.wallet_analyzer.get_swap_txs(),
+                st.markdown(create_download_link(self.swap_txs_df,
                                                  f"{self.wallet_address}_swap_txs.csv"), unsafe_allow_html=True)
 
             st.markdown("Powered by Etherscan.io APIs")
