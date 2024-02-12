@@ -1,3 +1,4 @@
+pyyaml
 streamlit
 requests_cache
 requests~=2.28.2

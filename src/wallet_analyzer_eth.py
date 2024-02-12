@@ -4,7 +4,7 @@ import os
 from download_wallet_txs import get_txs, get_token_txs, get_internal_txs
 import pandas as pd
 import numpy as np
-import configparser
+import yaml
 
 
 class WalletAnalyzer:
@@ -20,32 +20,20 @@ class WalletAnalyzer:
         self.token_txs_df = None
         self.internal_txs_df = None
 
-        config = configparser.ConfigParser()
-
-        # Read the contracts.ini file
-        config.read('data/contracts.ini')
+        with open('data/contracts.yaml', 'r') as file:
+            config = yaml.safe_load(file)
 
         self.weth_address = config['eth']['weth'].lower()
 
         if self.chain == 'eth':
-            routers_str = config['eth']['routers']
-            stablecoins_str = config['eth']['stablecoins']
-
-            # Load routers from the file
-            self.routers = [s.strip() for s in routers_str.split(',')]
-
+            self.routers = config['eth']['routers']
             # Source: https://ethplorer.io/tag/stablecoins#
-            self.stablecoins = [s.strip() for s in stablecoins_str.split(',')]
+            self.stablecoins = config['eth']['stablecoins']
 
         # For the implementation of the BSC chain
         elif self.chain == 'bsc':
-            routers_str = config['bsc']['routers']
-            stablecoins_str = config['bsc']['stablecoins']
-
-            # Load routers from the file
-            self.routers = [s.strip() for s in routers_str.split(',')]
-
-            self.stablecoins = [s.strip() for s in stablecoins_str.split(',')]
+            self.routers = config['bsc']['routers']
+            self.stablecoins = config['bsc']['stablecoins']
 
         # Make the lists lowercase for easy comparison
         self.routers = [router.lower() for router in self.routers]
