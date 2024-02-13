@@ -1,7 +1,7 @@
 """Analysis of a ETH wallet"""
 import datetime
 import os
-from download_wallet_txs import get_txs, get_token_txs, get_internal_txs
+from download_wallet_txs import DataDownloader
 import pandas as pd
 import numpy as np
 import yaml
@@ -23,6 +23,9 @@ class WalletAnalyzer:
         self.txs_df = None
         self.token_txs_df = None
         self.internal_txs_df = None
+
+        api_endpoint = 'etherscan.io' if self.chain == 'eth' else 'bscscan.com'
+        self.data_downloader = DataDownloader(self.wallet, api_endpoint, 0)
 
         # Load the YAML file with os to make it work in the streamlit cloud
         current_location = os.path.dirname(os.path.realpath(__file__))
@@ -46,18 +49,16 @@ class WalletAnalyzer:
         self.routers = [router.lower() for router in self.routers]
         self.stablecoins = [stablecoin.lower() for stablecoin in self.stablecoins]
 
-    def get_data(self, startblock=0):
+    def get_data(self) -> None:
         """
         Download all the data (transactions, internal transactions, token transactions)
         Change the dtypes
         Decode Universal router input
 
-        :param startblock: block number to start from
-        :return:
+        :return: None
         """
-        api_endpoint = 'etherscan.io' if self.chain == 'eth' else 'bscscan.com'
 
-        txs_list = get_txs(self.wallet, api_endpoint, startblock=startblock)
+        txs_list = self.data_downloader.get_txs()
         print(f"Downloaded total: {len(txs_list)} transactions")
 
         # Create a dataframe
@@ -93,7 +94,7 @@ class WalletAnalyzer:
             lambda row: self.classify_tx(row['from'], row['to'], row['methodId'], row['value']),
             axis=1)
 
-        token_txs_list = get_token_txs(self.wallet, api_endpoint, startblock=startblock)
+        token_txs_list = self.data_downloader.get_token_txs()
 
         token_txs_df = pd.DataFrame(token_txs_list)
 
@@ -126,7 +127,7 @@ class WalletAnalyzer:
             token_txs_df['cumulativeGasUsed'] = token_txs_df['cumulativeGasUsed'].astype(int)
             token_txs_df['confirmations'] = token_txs_df['confirmations'].astype(int)
 
-        internal_txs_list = get_internal_txs(self.wallet, api_endpoint, startblock=startblock)
+        internal_txs_list = self.data_downloader.get_internal_txs()
 
         internal_txs_df = pd.DataFrame(internal_txs_list)
 
