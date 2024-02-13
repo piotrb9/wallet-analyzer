@@ -8,9 +8,13 @@ import yaml
 
 
 class WalletAnalyzer:
+    """
+    Class for analyzing the wallet transactions of a given wallet
+    """
     def __init__(self, wallet: str, chain='eth') -> None:
         """
         Analyzes wallet transactions
+
         :param wallet: wallet address
         """
         self.wallet = wallet.lower()
@@ -47,6 +51,7 @@ class WalletAnalyzer:
         Download all the data (transactions, internal transactions, token transactions)
         Change the dtypes
         Decode Universal router input
+
         :param startblock: block number to start from
         :return:
         """
@@ -151,6 +156,7 @@ class WalletAnalyzer:
     def move_weth_transactions(self) -> None:
         """
         Move WETH transactions from token_txs_df to the txs_df
+
         :return: None
         """
         weth_txs = self.token_txs_df.loc[self.token_txs_df['contractAddress'] == self.weth_address]
@@ -172,6 +178,7 @@ class WalletAnalyzer:
         """
         Change the decimal of the value. Walkaround for the numbers that are too big even for np.int64.
         Most tokens decimal is 18, this function can change the value to a smaller value by loosing precision.
+
         :param value: value to change
         :param decimal: current length of the value
         :param crop: how many last digits to crop
@@ -189,6 +196,7 @@ class WalletAnalyzer:
     def classify_tx(self, from_wallet: str, to_wallet: str, method_id: str, value: int) -> str:
         """
         Check what type of tx is it
+
         :param from_wallet: from wallet address
         :param to_wallet: to wallet address
         :param method_id: method id
@@ -219,6 +227,7 @@ class WalletAnalyzer:
     def save_data(self, folder: str = "data") -> None:
         """
         Save the txs_df, token_txs_df and internal_txs_df dataframes to separate CSV files in the given dir
+
         :param folder: directory of the files
         :return: None
         """
@@ -229,6 +238,7 @@ class WalletAnalyzer:
     def load_data(self, folder: str = "data") -> None:
         """
         Same as self.get_data but loads the data from 3 CSV files located in the dir
+
         :param folder: directory of the files
         :return: None
         """
@@ -239,6 +249,7 @@ class WalletAnalyzer:
     def calculate_swap_txs(self) -> None:
         """
         Get the data about the trades from the token transactions df
+
         :return: None
         """
 
@@ -251,7 +262,8 @@ class WalletAnalyzer:
 
     def get_info_from_token_txs(self, tx_hash: str, tx_type: str, value: float) -> pd.Series:
         """
-        Get information about the transaction for the token_txs_df. Use it to merge data of txs_df with token_txs_df.
+        Get information about the transaction for the token_txs_df. Use it to merge data of txs_df with token_txs_df
+
         :param tx_hash: Transaction hash
         :param tx_type: Transaction type
         :param value: Transaction value
@@ -343,6 +355,7 @@ class WalletAnalyzer:
     def check_snipers(self, max_allowed_overshoot: float = 1.6) -> None:
         """
         Mark the snipe transactions (with high gas price)
+
         :param max_allowed_overshoot: Max allowed gas price overshoot (compared to the avg gas price in the selected day)
         :return: None
         """
@@ -366,6 +379,7 @@ class WalletAnalyzer:
     def load_gas_price_history(self, file='data/export-AvgGasPrice.csv') -> pd.DataFrame:
         """
         Load gas price history (export data from Etherscan.io)
+
         :param file: CSV file with gas price history
         :return: dataframe with gas price history
         """
@@ -381,6 +395,7 @@ class WalletAnalyzer:
                      drop_in_out_tokens: bool = False, drop_stablecoins_swaps: bool = True) -> pd.DataFrame:
         """
         Get all the swap transactions (buy and sell) from the txs_df
+
         :param drop_snipes: whether to drop all transaction of tokens that have snipe transactions
         :param include_other_swap_types: whether to include other swap types (other_buy, other_sell)
         :param drop_in_out_tokens: whether to drop all transaction of tokens that have in/out transactions
@@ -414,6 +429,7 @@ class WalletAnalyzer:
     def drop_snipes(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Remove all the transactions with tokens that have at least 1 snipe transaction
+
         :param df: dataframe with all the transactions
         :return: dataframe with all the transactions with tokens with snipe transactions removed
         """
@@ -426,6 +442,7 @@ class WalletAnalyzer:
     def drop_in_out_tokens(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Remove all the transactions with tokens that have at least 1 in/out transaction
+
         :param df: dataframe with all the transactions
         :return: dataframe with all the transactions with tokens with in/out transactions removed
         """
@@ -439,6 +456,7 @@ class WalletAnalyzer:
     def check_token_transfers(self) -> None:
         """
         Check for token transfers in and out (including stablecoins)
+
         :return: None
         """
         # Incoming transfers - only in 'token transfers' tab
@@ -493,9 +511,10 @@ class WalletAnalyzer:
                              drop_in_out_tokens: bool = False) -> pd.DataFrame:
         """
         Creates self.token_trades df containing aggregated info about trades per every token
-        :param drop_snipes:
-        :param include_other_swap_types:
-        :param drop_in_out_tokens:
+
+        :param drop_snipes: whether to drop all transaction of tokens that have snipe transactions
+        :param include_other_swap_types: whether to include other swap types (other_buy, other_sell)
+        :param drop_in_out_tokens: whether to drop all transaction of tokens that have in/out transactions
         :return: Dataframe with aggregated info about trades per every token and trading metrics per token
         """
 
@@ -536,6 +555,7 @@ class WalletAnalyzer:
     def check_internal_transfers(self) -> None:
         """
         For ETH transfers via contracts
+
         :return: None
         """
 
@@ -557,6 +577,7 @@ class WalletAnalyzer:
     def select_data_by_timestamp(self, start=None, stop=None) -> None:
         """
         Select only trades in a given timeframe
+
         :param start: start timestamp
         :param stop: stop timestamp
         :return: None
@@ -578,7 +599,17 @@ class WalletAnalyzer:
 
 
 class MetricsCalculator:
+    """
+    Class for calculating trading metrics
+    """
     def __init__(self, swap_txs_df: pd.DataFrame, txs_df: pd.DataFrame, token_trades_df: pd.DataFrame):
+        """
+        Calculate trading metrics based on the datafarmes from the WalletAnalyzer
+
+        :param swap_txs_df: Dataframe with only swap transactions
+        :param txs_df: Dataframe with all the transactions
+        :param token_trades_df: Aggregated info about trades per every token
+        """
         self.token_trades_df = token_trades_df
         self.swap_txs_df = swap_txs_df
         self.txs_df = txs_df
@@ -586,6 +617,7 @@ class MetricsCalculator:
     def first_tx_datetime(self) -> datetime.datetime:
         """
         Get the datetime of the first transaction
+
         :return: datetime of the first transaction
         """
 
@@ -596,6 +628,7 @@ class MetricsCalculator:
     def last_tx_datetime(self) -> datetime.datetime:
         """
         Get the datetime of the last transaction
+
         :return: datetime of the last transaction
         """
 
@@ -605,7 +638,8 @@ class MetricsCalculator:
 
     def avg_trade_result(self, perc: bool = False) -> float:
         """
-        How big is the average result of a trade (in ETH or %). Only for trades that have both buy&sell transactions!
+        How big is the average result of a trade (in ETH or %). Only for trades that have both buy&sell transactions
+
         :param perc: whether to return the result in % (if False, in ETH)
         :return: average result of trade in ETH or %. 100% means you gained 0 ETH
         """
@@ -621,6 +655,7 @@ class MetricsCalculator:
     def win_ratio_percent(self) -> float:
         """
         How many trades were profitable (in %)
+
         :return: percentage of profitable trades
         """
         df = self.token_trades_df
@@ -643,6 +678,7 @@ class MetricsCalculator:
     def final_trade_result(self) -> float:
         """
         Final trade result based on the self.token_trades, only for tokens that have both buy and sell txs
+
         :return: final trade result in ETH
         """
 
@@ -656,6 +692,7 @@ class MetricsCalculator:
     def avg_trade_size(self) -> float:
         """
         How big is the average bet (in ETH)
+
         :return: average buy order size in ETH
         """
         assert self.token_trades_df is not None, 'Use self.calculate_tokens_txs() first!'
@@ -668,6 +705,7 @@ class MetricsCalculator:
     def snipes_percent(self) -> float:
         """
         How many swaps were snipes (with high gas fee)
+
         :return: percentage of snipe transactions
         """
 
@@ -679,6 +717,7 @@ class MetricsCalculator:
     def trades_per_day(self) -> pd.DataFrame:
         """
         Calculate how many trades were made every day
+
         :return: dataframe with the number of trades per day
         """
         self.swap_txs_df['date'] = pd.to_datetime(self.swap_txs_df.loc[:, 'timeStamp'], unit='s').dt.date
@@ -695,6 +734,7 @@ class MetricsCalculator:
     def cumulated_daily_trading_result(self) -> pd.DataFrame:
         """
         Cumulative daily trading result (total sell-buy)
+
         :return: dataframe with the cumulated daily trading result
         """
 
@@ -723,6 +763,7 @@ class MetricsCalculator:
     def median_trade_size(self) -> float:
         """
         How big is the median bet (in ETH)
+
         :return: median buy order size in ETH
         """
         assert self.swap_txs_df is not None, 'Use self.get_data() first!'
@@ -734,6 +775,7 @@ class MetricsCalculator:
     def first_trade_datetime(self) -> datetime.datetime:
         """
         Get the datetime of the first transaction
+
         :return: datetime of the first transaction
         """
         assert self.swap_txs_df is not None, 'Use self.get_data() first!'
@@ -745,6 +787,7 @@ class MetricsCalculator:
     def last_trade_datetime(self) -> datetime.datetime:
         """
         Get the datetime of the last trade
+
         :return: datetime of the last trade
         """
         assert self.swap_txs_df is not None, 'Use self.get_data() first!'
@@ -756,6 +799,7 @@ class MetricsCalculator:
     def total_swaps_number(self) -> int:
         """
         How many swaps were made in total
+
         :return: number of swaps made in total
         """
         assert self.swap_txs_df is not None, 'Use self.get_data() first!'
@@ -765,6 +809,7 @@ class MetricsCalculator:
     def traded_tokens_number(self) -> int:
         """
         How many tokens were traded in total
+
         :return: number of tokens traded in total
         """
 
@@ -774,8 +819,10 @@ class MetricsCalculator:
 
     def calculate_total_values(self):
         """
-        Calculate total in,out and buy,sell on DEX
-        :return: total_eth_in, total_eth_out, total_eth_buy, total_eth_sell
+        Calculate basic values of the ETH/tokens flow
+
+        :return: total_eth_in, total_eth_internal_in, total_eth_out, total_eth_buy, total_eth_sell, total_stablecoins_in,
+        total_stablecoins_out, total_fees_eth, count_tokens_in, count_tokens_out
         """
         # Calculate total values
         total_eth_out = self.txs_df.loc[self.txs_df['txType'] == 'eth_transfer_out', 'value'].sum()
@@ -802,6 +849,7 @@ class MetricsCalculator:
     def calculate_rolling_ratings(self) -> pd.DataFrame:
         """
         Calculates different types of ratings after every trade
+
         :return: dataframe with the ratings
         """
         assert self.swap_txs_df is not None, 'Use self.get_data() first!'
@@ -898,6 +946,7 @@ class MetricsCalculator:
         def calculate_tokens_with_90p_sold_up_to_index(idx, df):
             """
             Calculate the number of unique tokens that have been sold more than 90% up to a given index
+
             """
             relevant_slice = df.iloc[:idx + 1]
             tokens_sold_more_than_90p = relevant_slice[relevant_slice['sold_more_than_90p']]['tokenCa'].unique()

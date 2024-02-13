@@ -9,6 +9,9 @@ from wallet_analyzer_eth import MetricsCalculator
 
 
 class Dashboard:
+    """
+    Dashboard class to create a simple traders dashboard with Streamlit.
+    """
     def __init__(self, initial_wallet_address: str):
         self.txs_df = None
         self.swap_txs_df = None
