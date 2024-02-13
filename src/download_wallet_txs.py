@@ -1,4 +1,4 @@
-"""Download wallet txs history using bscscan or etherscan api
+"""Download wallet txs history using bscscan or etherscan api.
 Use cache to avoid api rate limit (cache expires after 3 hours)
 """
 import os

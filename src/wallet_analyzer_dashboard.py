@@ -24,6 +24,7 @@ class Dashboard:
     def get_wallet_data(self, wallet_address: str) -> None:
         """
         Get wallet data and calculate all the metrics
+
         :param wallet_address: Wallet address
         :return: None
         """
@@ -45,6 +46,7 @@ class Dashboard:
     def main(self) -> None:
         """
         Main function to run the dashboard
+
         :return: None
         """
         st.set_page_config(
