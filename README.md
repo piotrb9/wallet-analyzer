@@ -24,6 +24,8 @@ Example wallets you can check (data on the blockchain is public so I leave it he
 ![image](https://github.com/piotrb9/wallet-analyzer/assets/157641773/d14f6f79-745d-4e95-9cda-73ed1fd3d835)
 
 ## Installation
+**Python 3.9.18 suggested.**
+
 Get etherscan.io API key from: https://docs.etherscan.io/getting-started/viewing-api-usage-statistics
 
 Set env variable with your api key:
@@ -54,6 +56,10 @@ Network URL: http://11.1.1.2:8501
 
 All features are described in the panel when you hover them. You only have to write an Ethereum wallet address in the top input field. There must be at least 1 proper transaction to make the panel work properly
 
+## Docs
+
+Documentation available at [Read the docs](https://wallet-analyzer.readthedocs.io/en/latest/)
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first
@@ -62,7 +68,7 @@ to discuss what you would like to change.
 ## TODO
 Read the [TODO](https://github.com/piotrb9/wallet-analyzer/blob/master/TODO.md) to see the list.
 
-*DISCLAIMER**
+**DISCLAIMER**
 For educational purposes only
 
 ## License
