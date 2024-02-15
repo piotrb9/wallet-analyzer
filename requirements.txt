@@ -1,3 +1,4 @@
+sphinx-rtd-theme
 pyyaml
 streamlit
 requests_cache
