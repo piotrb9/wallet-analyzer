@@ -3,3 +3,4 @@
 /.idea/
 *.xml
 *.iml
+/docs/cache/cache.sqlite
