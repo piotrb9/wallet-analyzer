@@ -204,6 +204,8 @@ class WalletAnalyzer:
         :param value: value of the transaction (ETH)
         :return: type of the tx
         """
+        if not value >= 0:
+            raise ValueError("Value must be greater or equal to 0")
 
         if from_wallet == self.wallet and value != 0 and method_id == '0x':
             tx_type = 'eth_transfer_out'
