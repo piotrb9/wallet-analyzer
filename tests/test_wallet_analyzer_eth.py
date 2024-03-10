@@ -70,3 +70,33 @@ def test_classify_tx_swap_tx_swap_tx_nonzero_value(wallet_analyzer):
 
     # Test classify_tx() with a normal transaction
     assert wallet_analyzer.classify_tx(from_wallet, to_wallet, method_id, value) == "swap_tx_nonzero_value"
+
+
+def test_classify_tx_other(wallet_analyzer):
+    from_wallet = OWN_WALLET_ADDRESS
+    to_wallet = "0x3fC91A3afd70aac3356d5a6CC9D4B2b7FAD".lower()
+    method_id = "0x343"
+    value = 0.1
+
+    # Test classify_tx() with a normal transaction
+    assert wallet_analyzer.classify_tx(from_wallet, to_wallet, method_id, value) == "other"
+
+
+def test_classify_tx_none_value(wallet_analyzer):
+    from_wallet = OWN_WALLET_ADDRESS
+    to_wallet = "0x3fC91A3afd70aac3356d5a6CC9D4B2b7FAD"
+    method_id = "0x"
+    value = None
+
+    with pytest.raises(TypeError):
+        wallet_analyzer.classify_tx(from_wallet, to_wallet, method_id, value)
+
+
+def test_classify_tx_minus_value(wallet_analyzer):
+    from_wallet = OWN_WALLET_ADDRESS
+    to_wallet = "0x3fC91A3afd70aac3356d5a6CC9D4B2b7FAD"
+    method_id = "0x"
+    value = -1.5
+
+    with pytest.raises(ValueError):
+        wallet_analyzer.classify_tx(from_wallet, to_wallet, method_id, value)
