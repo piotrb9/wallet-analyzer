@@ -4,3 +4,4 @@
 *.xml
 *.iml
 /docs/cache/cache.sqlite
+/tests/.pytest_cache/
