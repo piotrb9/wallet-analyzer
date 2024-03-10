@@ -1,7 +1,7 @@
 """Analysis of a ETH wallet"""
 import datetime
 import os
-from download_wallet_txs import DataDownloader
+from src.download_wallet_txs import DataDownloader
 import pandas as pd
 import numpy as np
 import yaml
@@ -194,7 +194,7 @@ class WalletAnalyzer:
 
         return value_float
 
-    def classify_tx(self, from_wallet: str, to_wallet: str, method_id: str, value: int) -> str:
+    def classify_tx(self, from_wallet: str, to_wallet: str, method_id: str, value: float) -> str:
         """
         Check what type of tx is it
 
