@@ -82,6 +82,26 @@ def test_classify_tx_other(wallet_analyzer):
     assert wallet_analyzer.classify_tx(from_wallet, to_wallet, method_id, value) == "other"
 
 
+def test_classify_tx_other_self(wallet_analyzer):
+    from_wallet = OWN_WALLET_ADDRESS
+    to_wallet = OWN_WALLET_ADDRESS
+    method_id = "0x343"
+    value = 0.1
+
+    # Test classify_tx() with a normal transaction
+    assert wallet_analyzer.classify_tx(from_wallet, to_wallet, method_id, value) == "other"
+
+
+def test_classify_tx_other_not_own(wallet_analyzer):
+    from_wallet = "0x3fC91A3afd70aac3356d5a6CC9D4B2b7FAD".lower()
+    to_wallet = "0x3fC91A3afd70aac3356d5a6CC9D4B2b7FAD".lower()
+    method_id = "0x343"
+    value = 0.1
+
+    # Test classify_tx() with a normal transaction
+    assert wallet_analyzer.classify_tx(from_wallet, to_wallet, method_id, value) == "other"
+
+
 def test_classify_tx_none_value(wallet_analyzer):
     from_wallet = OWN_WALLET_ADDRESS
     to_wallet = "0x3fC91A3afd70aac3356d5a6CC9D4B2b7FAD"
@@ -100,3 +120,13 @@ def test_classify_tx_minus_value(wallet_analyzer):
 
     with pytest.raises(ValueError):
         wallet_analyzer.classify_tx(from_wallet, to_wallet, method_id, value)
+
+
+def test_load_gas_price_history(wallet_analyzer):
+    gas_price_df = wallet_analyzer.load_gas_price_history('../src/data/export-AvgGasPrice.csv')
+
+    assert gas_price_df is not None
+    assert len(gas_price_df) > 0
+    assert gas_price_df.columns.tolist() == ['date', 'avgGasPrice']
+
+
