@@ -1,4 +1,11 @@
 """Analysis of a ETH wallet"""
+import sys
+import os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+
 import datetime
 import os
 from src.download_wallet_txs import DataDownloader
@@ -60,6 +67,7 @@ class WalletAnalyzer:
 
         txs_list = self.data_downloader.get_txs()
         print(f"Downloaded total: {len(txs_list)} transactions")
+        print(txs_list)
 
         # Create a dataframe
         txs_df = pd.DataFrame(txs_list)
