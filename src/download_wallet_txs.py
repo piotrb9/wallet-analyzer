@@ -82,3 +82,49 @@ class DataDownloader:
             return []
 
         return txs
+
+
+class SolanaDataDownloader:
+    """
+    Download wallet txs history using solana.fm api
+    """
+
+    def __init__(self, address: str):
+        """
+        Create a new DataDownloader object with given address
+
+        :param address: Wallet address
+        """
+        self.address = address
+
+    def get_txs(self) -> list:
+        """
+        Get normal transactions for a given address
+
+        :return: List of transactions
+        """
+        all_txs = []
+        page = 1
+        url = f"https://api.solana.fm/v0/accounts/{self.address}/transfers?page={page}"
+        response = requests.request("GET", url)
+        data = response.json()
+        total_pages = data['pagination']['totalPages']
+
+        page += 1
+        if data['status'] == 'success':
+            all_txs.extend(data['results'])
+        else:
+            print("Error: ", data['message'])
+
+        while page <= total_pages:
+            url = f"https://api.solana.fm/v0/accounts/{self.address}/transfers?page={page}"
+            response = requests.request("GET", url)
+            data = response.json()
+            if data['status'] == 'success':
+                all_txs.extend(data['results'])
+            else:
+                print("Error: ", data['message'])
+
+            page += 1
+
+        return all_txs
