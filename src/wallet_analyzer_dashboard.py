@@ -47,9 +47,14 @@ class Dashboard:
         elif self.blockchain == 'sol':
             wallet_analyzer = SolanaWalletAnalyzer(wallet_address)
             wallet_analyzer.load_transactions('../temp/solana_fm_transfers.json')
-            self.swap_txs_df = wallet_analyzer.get_swaps()
-            self.txs_df = self.swap_txs_df
-            self.metrics_calculator = MetricsCalculator(self.swap_txs_df, self.txs_df, self.txs_df)
+
+            # self.swap_txs_df = wallet_analyzer.get_swaps()
+            # self.txs_df = self.swap_txs_df
+            wallet_analyzer.get_data()
+            self.txs_df = wallet_analyzer.txs_df
+            self.token_trades_df = wallet_analyzer.calculate_tokens_txs()
+
+            self.metrics_calculator = MetricsCalculator(self.txs_df, self.txs_df, self.token_trades_df)
 
         else:
             raise ValueError("Invalid blockchain")
