@@ -2,6 +2,8 @@
 Use cache to avoid api rate limit (cache expires after 3 hours)
 """
 import os
+import time
+
 import requests
 import requests_cache
 
@@ -171,6 +173,7 @@ class SolanaDataDownloader:
         last_tx_signature = transactions[-1]['signature']
 
         while True:
+            time.sleep(1)
             body = {
                 'api-key': helius_api_key,
                 'before': last_tx_signature,
