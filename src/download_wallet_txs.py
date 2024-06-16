@@ -6,6 +6,7 @@ import requests
 import requests_cache
 
 etherscan_api_key = os.environ.get('etherscan_api_key')
+helius_api_key = os.environ.get('helius_api_key')
 
 requests_cache.install_cache('cache/cache', backend='sqlite', expire_after=60 * 60 * 3)
 
@@ -109,6 +110,7 @@ class SolanaDataDownloader:
         response = requests.request("GET", url)
         data = response.json()
         total_pages = data['pagination']['totalPages']
+        print("Total pages: ", total_pages)
 
         page += 1
         if data['status'] == 'success':
@@ -117,6 +119,9 @@ class SolanaDataDownloader:
             print("Error: ", data['message'])
 
         while page <= total_pages:
+            import time
+            time.sleep(2)
+            print("Page: ", page)
             url = f"https://api.solana.fm/v0/accounts/{self.address}/transfers?page={page}"
             response = requests.request("GET", url)
             data = response.json()
@@ -126,5 +131,66 @@ class SolanaDataDownloader:
                 print("Error: ", data['message'])
 
             page += 1
+
+        # Save the transactions to a file
+
+        import json
+        with open(f'data/{self.address}_txs.json', 'w') as file:
+            json.dump({'results': all_txs}, file)
+        return all_txs
+
+    def get_txs_helius(self) -> list:
+        """
+        Get transactions for a given address using the Helius API
+        :return:
+        """
+
+        all_txs = []
+        transactions = []
+
+        url = f'https://api.helius.xyz/v0/addresses/{self.address}/transactions'
+
+        headers = {
+            'Content-Type': 'application/json',
+        }
+
+        body = {
+            'api-key': helius_api_key,
+            'limit': 100
+        }
+        response = requests.get(url, headers=headers, params=body)
+
+        if response.status_code == 200:
+            transactions = response.json()
+            # print(transactions)
+            all_txs.extend(transactions)
+        else:
+            print(f"Error: {response.status_code}, {response.text}")
+            return []
+
+        last_tx_signature = transactions[-1]['signature']
+
+        while True:
+            body = {
+                'api-key': helius_api_key,
+                'before': last_tx_signature,
+                'limit': 100
+            }
+            response = requests.get(url, headers=headers, params=body)
+
+            if response.status_code == 200:
+                transactions = response.json()
+                all_txs.extend(transactions)
+
+                # Stop if there are less than 10 transactions in the last response
+                if len(transactions) < 10:
+                    break
+            else:
+                print(f"Error: {response.status_code}, {response.text}")
+
+            last_tx_signature = transactions[-1]['signature']
+
+        # Remove duplicates by signature
+        all_txs = [dict(t) for t in {tuple(d.items()) for d in all_txs}]
 
         return all_txs
