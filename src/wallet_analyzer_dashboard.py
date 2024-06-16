@@ -6,13 +6,14 @@ from io import StringIO
 import base64
 from wallet_analyzer_eth import WalletAnalyzer
 from wallet_analyzer_eth import MetricsCalculator
+from wallet_analyzer_sol import SolanaWalletAnalyzer
 
 
 class Dashboard:
     """
     Dashboard class to create a simple traders dashboard with Streamlit.
     """
-    def __init__(self, initial_wallet_address: str):
+    def __init__(self, initial_wallet_address: str, blockchain: str):
         self.txs_df = None
         self.swap_txs_df = None
         self.token_trades_df = None
@@ -20,6 +21,7 @@ class Dashboard:
         self.wallet_analyzer = None
         self.metrics_calculator = None
         self.wallet_address = initial_wallet_address
+        self.blockchain = blockchain
 
     def get_wallet_data(self, wallet_address: str) -> None:
         """
@@ -28,20 +30,31 @@ class Dashboard:
         :param wallet_address: Wallet address
         :return: None
         """
-        wallet_analyzer = WalletAnalyzer(wallet_address)
-        wallet_analyzer.get_data()
-        wallet_analyzer.calculate_swap_txs()
-        wallet_analyzer.check_token_transfers()
-        wallet_analyzer.check_internal_transfers()
-        wallet_analyzer.check_snipers()
+        if self.blockchain == "eth":
+            wallet_analyzer = WalletAnalyzer(wallet_address)
+            wallet_analyzer.get_data()
+            wallet_analyzer.calculate_swap_txs()
+            wallet_analyzer.check_token_transfers()
+            wallet_analyzer.check_internal_transfers()
+            wallet_analyzer.check_snipers()
+
+            self.swap_txs_df = wallet_analyzer.get_swap_txs()
+            self.txs_df = wallet_analyzer.txs_df
+            self.token_trades_df = wallet_analyzer.calculate_tokens_txs()
+
+            self.metrics_calculator = MetricsCalculator(self.swap_txs_df, self.txs_df, self.token_trades_df)
+
+        elif self.blockchain == 'sol':
+            wallet_analyzer = SolanaWalletAnalyzer(wallet_address)
+            wallet_analyzer.load_transactions('../temp/solana_fm_transfers.json')
+            self.swap_txs_df = wallet_analyzer.get_swaps()
+            self.txs_df = self.swap_txs_df
+            self.metrics_calculator = MetricsCalculator(self.swap_txs_df, self.txs_df, self.txs_df)
+
+        else:
+            raise ValueError("Invalid blockchain")
 
         self.wallet_analyzer = wallet_analyzer
-
-        self.swap_txs_df = wallet_analyzer.get_swap_txs()
-        self.txs_df = wallet_analyzer.txs_df
-        self.token_trades_df = wallet_analyzer.calculate_tokens_txs()
-
-        self.metrics_calculator = MetricsCalculator(self.swap_txs_df, self.txs_df, self.token_trades_df)
 
     def main(self) -> None:
         """
@@ -54,6 +67,9 @@ class Dashboard:
             page_icon="✅",
             layout="wide",
         )
+
+        st.markdown("### Blockchain")
+        self.blockchain = st.selectbox("Select the blockchain", ['eth', 'sol'], index=0)
 
         st.markdown("### Wallet address")
         self.wallet_address = st.text_input("Enter the wallet address", self.wallet_address)
@@ -249,5 +265,5 @@ class Dashboard:
 
 
 if __name__ == "__main__":
-    dashboard = Dashboard("0x28C79b441c460D33a2751652D8793566860aB666")
+    dashboard = Dashboard("0x28C79b441c460D33a2751652D8793566860aB666", 'eth')
     dashboard.main()
