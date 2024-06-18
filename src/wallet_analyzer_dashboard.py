@@ -46,7 +46,7 @@ class Dashboard:
 
         elif self.blockchain == 'sol':
             wallet_analyzer = SolanaWalletAnalyzer(wallet_address)
-            wallet_analyzer.load_transactions('../temp/solana_fm_transfers.json')
+            # wallet_analyzer.load_transactions('../temp/solana_fm_transfers.json')
 
             # self.swap_txs_df = wallet_analyzer.get_swaps()
             # self.txs_df = self.swap_txs_df

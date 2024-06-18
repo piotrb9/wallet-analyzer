@@ -67,7 +67,7 @@ class WalletAnalyzer:
 
         txs_list = self.data_downloader.get_txs()
         print(f"Downloaded total: {len(txs_list)} transactions")
-        print(txs_list)
+        # print(txs_list)
 
         # Create a dataframe
         txs_df = pd.DataFrame(txs_list)
