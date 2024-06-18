@@ -173,6 +173,7 @@ class SolanaDataDownloader:
         last_tx_signature = transactions[-1]['signature']
 
         while True:
+            print(f"Last tx signature: {last_tx_signature}")
             time.sleep(1)
             body = {
                 'api-key': helius_api_key,
@@ -194,6 +195,6 @@ class SolanaDataDownloader:
             last_tx_signature = transactions[-1]['signature']
 
         # Remove duplicates by signature
-        all_txs = [dict(t) for t in {tuple(d.items()) for d in all_txs}]
+        all_txs = list({v['signature']: v for v in all_txs}.values())
 
         return all_txs
