@@ -50,3 +50,16 @@ bsc:
     - "0x160CAed03795365F3A589f10C379FfA7d75d4E76"
     - "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506"
   wbnb: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
+
+sol:
+  stablecoins:
+    - "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+    - "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+    - "7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT"
+    - "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo"
+    - "JEFFSQ3s8T3wKsvp4tnRAsUBW7Cqgnf8ukBZC4C8XBm1"
+    - "Ea5SjE2Y6yvCeW5dYTn7PYMuW5ikXkvbGdcmSnXeaLjS"
+    - "A9mUU4qviSctJVPJdBJWkb28deg915LYJKrzQ19ji3FM"
+    - "FCqfQSujuPxy6V42UvafBhsysWtEq1vhjfMN1PUbgaxA"
+    - "Dn4noZ5jgGfkntzcQSUZ8czkreiZ1ForXYoV2H8Dm7S1"
+  wsol: "So11111111111111111111111111111111111111112"
