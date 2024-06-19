@@ -51,10 +51,10 @@ class SolanaWalletAnalyzer:
             tx_to = transaction["nativeTransfers"][0]["toUserAccount"]
 
             if transaction["nativeTransfers"][0]["toUserAccount"] == self.wallet:
-                tx_type = "sol_transfer_in"
+                tx_type = "eth_transfer_in"
 
             elif transaction["nativeTransfers"][0]["fromUserAccount"] == self.wallet:
-                tx_type = "sol_transfer_out"
+                tx_type = "eth_transfer_out"
 
         elif transaction["type"] == "TRANSFER" and len(token_transfers) == 1 and token_transfers[0]["mint"] in self.stablecoins:
             value = transaction["nativeTransfers"][0]["amount"]
