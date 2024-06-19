@@ -102,6 +102,9 @@ class WalletAnalyzer:
             lambda row: self.classify_tx(row['from'], row['to'], row['methodId'], row['value']),
             axis=1)
 
+        # Fees paid
+        self.txs_df['txFee'] = self.txs_df['gasPrice'] / 10 ** 18 * self.txs_df['gasUsed']
+
         token_txs_list = self.data_downloader.get_token_txs()
 
         token_txs_df = pd.DataFrame(token_txs_list)
@@ -849,8 +852,6 @@ class MetricsCalculator:
         count_tokens_in = self.txs_df.loc[self.txs_df['txType'] == 'tokens_transfer_in', 'hash'].count()
         count_tokens_out = self.txs_df.loc[self.txs_df['txType'] == 'tokens_transfer_put', 'hash'].count()
 
-        # Fees paid
-        self.txs_df['txFee'] = self.txs_df['gasPrice'] / 10 ** 18 * self.txs_df['gasUsed']
         total_fees_eth = self.txs_df.loc[
             (self.txs_df['swapType'] == 'swap_buy') | (self.txs_df['swapType'] == 'swap_sell'), 'txFee'].sum()
 
