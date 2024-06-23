@@ -121,8 +121,8 @@ class SolanaWalletAnalyzer:
         token_amount = 0
         traded_token = None
 
-        if len(token_transfers) != 2:
-            print("Transaction does not have 2 token transfers")
+        if len(token_transfers) < 2:
+            print("Transaction does not have at least 2 token transfers")
             return None, 0, 0, None
 
         # Find the token transfer involving the owner_address
