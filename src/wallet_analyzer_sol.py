@@ -9,6 +9,7 @@ from download_wallet_txs import SolanaDataDownloader
 
 class SolanaWalletAnalyzer:
     def __init__(self, wallet: str):
+        self.txs_df = None
         self.wallet = wallet
         self.transactions = None
         self.swap_txs_df = None
@@ -28,6 +29,9 @@ class SolanaWalletAnalyzer:
         with open(file_path, 'r') as file:
             data = json.load(file)
         self.transactions = data['results'][:limit]
+        
+    def load_txs_df(self, file_path):
+        self.txs_df = pd.read_csv(file_path)
 
     def classify_tx(self, transaction, swap_type, swap_eth, traded_token) -> tuple:
         tx_from = None
@@ -68,6 +72,8 @@ class SolanaWalletAnalyzer:
                 tx_type = "stablecoins_transfer_out"
 
         # TODO add token transfer in/out
+
+        # TODO add stablecoins transfer in/out
 
         return tx_type, tx_from, tx_to, value
 
