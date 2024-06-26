@@ -67,6 +67,8 @@ class SolanaWalletAnalyzer:
             elif token_transfers[0]["fromUserAccount"] == self.wallet:
                 tx_type = "stablecoins_transfer_out"
 
+        # TODO add token transfer in/out
+
         return tx_type, tx_from, tx_to, value
 
     def get_swap_info(self, transaction) -> tuple:
@@ -122,7 +124,7 @@ class SolanaWalletAnalyzer:
         traded_token = None
 
         if len(token_transfers) < 2:
-            print("Transaction does not have at least 2 token transfers")
+            # print("Transaction does not have at least 2 token transfers")
             return None, 0, 0, None
 
         # Find the token transfer involving the owner_address
@@ -136,12 +138,12 @@ class SolanaWalletAnalyzer:
                 to_token = transfer["mint"]
 
         # Determine if it's a buy or sell based on the transfers
-        if from_token == "So11111111111111111111111111111111111111112" and to_token != "So11111111111111111111111111111111111111112":
+        if from_token == "So11111111111111111111111111111111111111112" and to_token != "So11111111111111111111111111111111111111112" and to_token not in [None, ""]:
             swap_type = "swap_buy"
             sol_amount = from_token_amount
             token_amount = to_token_amount
             traded_token = to_token
-        elif to_token == "So11111111111111111111111111111111111111112" and from_token != "So11111111111111111111111111111111111111112":
+        elif to_token == "So11111111111111111111111111111111111111112" and from_token != "So11111111111111111111111111111111111111112" and from_token not in [None, ""]:
             swap_type = "swap_sell"
             sol_amount = to_token_amount
             token_amount = from_token_amount
