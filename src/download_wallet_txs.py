@@ -141,7 +141,7 @@ class SolanaDataDownloader:
             json.dump({'results': all_txs}, file)
         return all_txs
 
-    def get_txs_helius(self) -> list:
+    def get_txs_helius(self, break_time=30 * 60) -> list:
         """
         Get transactions for a given address using the Helius API
         :return:
@@ -159,6 +159,8 @@ class SolanaDataDownloader:
         body = {
             'api-key': helius_api_key,
             'limit': 100
+            # 'type': ['TRANSFER', 'SWAP', 'UNKNOWN'],
+            # 'source': ['SYSTEM_PROGRAM', 'RAYDIUM', 'JUPITER', 'ORCA', 'PHANTOM']
         }
         response = requests.get(url, headers=headers, params=body)
 
@@ -174,7 +176,7 @@ class SolanaDataDownloader:
 
         while True:
             print(f"Last tx signature: {last_tx_signature}")
-            time.sleep(1)
+            # time.sleep(1)
             body = {
                 'api-key': helius_api_key,
                 'before': last_tx_signature,
@@ -191,6 +193,18 @@ class SolanaDataDownloader:
                     break
             else:
                 print(f"Error: {response.status_code}, {response.text}")
+
+            last_tx_timestamp = transactions[-1]['timestamp']
+            first_tx_timestamp = transactions[0]['timestamp']
+
+            # If the time between the first and last transaction is less than 2 hours, stop (to prevent API overusage)
+            if first_tx_timestamp - last_tx_timestamp < break_time:
+                # print(last_tx_timestamp, first_tx_timestamp, last_tx_timestamp - first_tx_timestamp)
+                print(f"Less than {break_time} seconds between transactions")
+                break
+
+            if len(all_txs) > 4000:
+                break
 
             last_tx_signature = transactions[-1]['signature']
 
