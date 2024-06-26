@@ -10,7 +10,7 @@ import requests_cache
 etherscan_api_key = os.environ.get('etherscan_api_key')
 helius_api_key = os.environ.get('helius_api_key')
 
-requests_cache.install_cache('cache/cache', backend='sqlite', expire_after=60 * 60 * 3)
+# requests_cache.install_cache('cache/cache', backend='sqlite', expire_after=60 * 60 * 3)
 
 
 class DataDownloader:
@@ -191,6 +191,9 @@ class SolanaDataDownloader:
                 # Stop if there are less than 10 transactions in the last response
                 if len(transactions) < 10:
                     break
+            elif response.status_code == 404:
+                print("No more transactions")
+                break
             else:
                 print(f"Error: {response.status_code}, {response.text}")
 
